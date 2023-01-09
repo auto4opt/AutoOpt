@@ -74,8 +74,8 @@ else
             Setting.ProbFE   = 1000;
             Setting.InnerFE  = 100;
             Setting.AlgN     = 10;
-            Setting.AlgFE    = 100;
-            Setting.AlgRuns  = 1;
+            Setting.AlgFE    = 500;
+            Setting.AlgRuns  = 10;
             Setting.Metric   = 'quality'; % quality/runtimeFE/runtimeSec/auc
             Setting.Compare  = 'average'; % average/statistic
             Setting.Evaluate = 'default'; % default/approximate/intensification/racing
@@ -96,9 +96,9 @@ else
             Setting.Metric   = 'quality';
             Setting.Tmax     = [];
             Setting.Thres    = [];
-            Setting.ProbN    = 10;
-            Setting.ProbFE   = 500;
-            Setting.AlgRuns  = 2;
+            Setting.ProbN    = 100;
+            Setting.ProbFE   = 50000;
+            Setting.AlgRuns  = 31;
             Setting          = Input(varargin,Setting,'parameter');
             Setting          = Input(Setting,'check');
             [bestSolutions,allSolutions,~] = Process(prob,instanceSolve,Setting);
