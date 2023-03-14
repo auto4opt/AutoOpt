@@ -1,6 +1,19 @@
 function AutoOpt(varargin)
-% The main function of AutoOptLib.
-% -------------------------------------------------------------------------
+% --------------------------Introduction-----------------------------------
+% AutoOptLib is a MATLAB library for automatically designing metaheuristic
+% optimization algorithms. 
+% AutoOptLib is licensed under the GNU General Public License v3.0 and is
+% free for academic use.
+% Please read the documentation at https://github.com/qz89/AutoOpt for a 
+% step-by-step user guidance.
+% Please reference the following paper if using AutoOptLib in your publication:
+% @article{zhao2023autooptlib,
+%  title={AutoOptLib: A Library of Automatically Designing Metaheuristic Optimization Algorithms in Matlab},
+%  author={Zhao, Qi and Yan, Bai and Hu, Taiwei and Chen, Xianglong and Shi, Yuhui},
+%  journal={arXiv preprint 	arXiv:2303.06536},
+%  year={2023}
+% }
+% ----------------------------Settings-------------------------------------
 % Settings of the targeted problem:
 % Problem      : problem name
 % InstanceTrain: indexes of training instances
@@ -38,9 +51,6 @@ function AutoOpt(varargin)
 %    AutoOpt('Mode','design','Problem','CEC2005_f1','InstanceTrain',[1,3],'InstanceTest',2,'AlgN',2,'AlgFE',4,'AlgRuns',1,'Compare','average')
 %    AutoOpt('Mode','solve','Problem','CEC2005_f1','InstanceSolve',[1,2],'AlgFile','Algs','ProbN',10,'ProbFE',100,'AlgRuns',2)
 % -------------------------------------------------------------------------
-%
-% -------------------------------------------------------------------------
-
 cd(fileparts(mfilename('fullpath')));
 addpath(genpath(cd));
 
