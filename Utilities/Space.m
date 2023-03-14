@@ -1,10 +1,10 @@
-function [AllOp,OpSpace,ParaSpace,ParaLocalSpace,BehavSpace] = Space(Problem,Setting)
+function Setting = Space(Problem,Setting)
 % Define the design space.
 
 % operater space
 switch Problem(1).type{1}
     case 'continuous'
-        Choose  = {'choose_traverse';'choose_tournament';'choose_roulette_wheel';'choose_cluster'}; 
+        Choose  = {'choose_traverse';'choose_tournament';'choose_roulette_wheel';'choose_brainstorm';'choose_nich'}; 
         Search  = {'search_pso';'search_de_current';'search_de_current_best';'search_de_random';
             'cross_arithmetic';'cross_sim_binary';'cross_point_one';'cross_point_two';
             'cross_point_uniform';'search_mu_gaussian';'search_mu_cauchy';'search_mu_polynomial';
@@ -12,17 +12,19 @@ switch Problem(1).type{1}
         Update  = {'update_greedy';'update_round_robin';'update_pairwise';'update_always';'update_simulated_annealing'};
        
     case 'discrete'
-        Choose  = {'choose_traverse';'choose_tournament';'choose_roulette_wheel'};
+        Choose  = {'choose_traverse';'choose_tournament';'choose_roulette_wheel';'choose_nich'};
         Search  = {'cross_point_one';'cross_point_two';'cross_point_uniform';'search_reset_one';
             'search_reset_rand';'reinit_discrete'};
         Update  = {'update_greedy';'update_round_robin';'update_pairwise';'update_always';'update_simulated_annealing'};
 
     case 'permutation'
-        Choose  = {'choose_traverse';'choose_tournament';'choose_roulette_wheel'};
+        Choose  = {'choose_traverse';'choose_tournament';'choose_roulette_wheel';'choose_nich'};
         Search  = {'cross_order_two';'cross_order_n';'search_swap';'search_swap_multi';
             'search_scramble';'search_insert';'reinit_permutation'};
         Update  = {'update_greedy';'update_round_robin';'update_pairwise';'update_always';'update_simulated_annealing'};
 end
+Setting.TunePara = false; % true/false, turn to true if perform hyperparameter configuration
+
 OpSpace = [1,length(Choose);
     length(Choose)+1,length(Choose)+length(Search);
     length(Choose)+length(Search)+1,length(Choose)+length(Search)+length(Update)]; % each row reports the search space of one kind of operaters, e.g., the search space of Choose is intergers from 1 to 4.
@@ -56,3 +58,8 @@ for i = 1:length(AllOp)
         ParaLocalSpace{i} = thisParaLocalSpace;
     end
 end
+Setting.OpSpace        = OpSpace;
+Setting.AllOp          = AllOp;
+Setting.ParaSpace      = ParaSpace;
+Setting.ParaLocalSpace = ParaLocalSpace;
+Setting.BehavSpace     = BehavSpace;

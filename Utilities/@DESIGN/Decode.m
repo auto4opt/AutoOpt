@@ -3,7 +3,7 @@ function [currOp,currPara] = Decode(Operator,Para,Problem,Setting)
 % Operator: 1*P, P search pathways
 % Para    : 1*P, P search pathways
 
-[AllOp,~,~,~,~] = Space(Problem,Setting);
+AllOp = Setting.AllOp;
 rate      = Setting.IncRate;
 innerGmax = ceil(Setting.InnerFE/Setting.ProbN);
 

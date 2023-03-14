@@ -1,7 +1,10 @@
 function [Operators,Paras] = Repair(Operators,Paras,Problem,Setting)
 % Ensure the designed algorithm(s) to be reasonable.
 
-[AllOp,~,~,ParaLocalSpace,BehavSpace] = Space(Problem,Setting);
+AllOp = Setting.AllOp;
+ParaLocalSpace = Setting.ParaLocalSpace;
+BehavSpace = Setting.BehavSpace;
+
 
 switch Problem(1).type{1}
     case 'continuous'

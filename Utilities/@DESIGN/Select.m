@@ -1,27 +1,26 @@
-function output = Select(OldAlgs,NewAlgs,Problem,Data,Setting,indInstance)
+function output = Select(AllAlgs,Problem,Data,Setting,seedInstance)
 % Select promising algorithms.
 
 % get algorithms' performance
-Algs = [OldAlgs,NewAlgs];
 if strcmp(Setting.Evaluate,'racing')
-    for i = 1:length(Algs)
-        for j = 1:numel(indInstance)
-            if sum(Algs(i).performance(indInstance(j),:)) == 0 % if haven't evaluate on instance j
-                Algs(i) = Design_Evaluate(Algs(i),Problem,Data,Setting,indInstance(j));
+    for i = 1:length(AllAlgs)
+        for j = 1:numel(seedInstance)
+            if sum(AllAlgs(i).performance(seedInstance(j),:)) == 0 % if haven't evaluate on instance j
+                AllAlgs(i) = AllAlgs(i).Evaluate(Problem,Data,Setting,seedInstance(j));
             end
         end
     end
 end
-c = Algs.GetPerformance(Setting,indInstance);
+c = AllAlgs.GetPerformance(Setting,seedInstance);
 
 % select algorithms
 switch Setting.Evaluate
-    case {'default','approximate'}
+    case {'exact','approximate'}
         if strcmp(Setting.Compare,'average')
             [~,ind] = sort(c,'ascend'); % small s values refer to better performance
         else
-            win = zeros(length(Algs),1);
-            for i = 1:length(Algs)
+            win = zeros(length(AllAlgs),1);
+            for i = 1:length(AllAlgs)
                 ind1 = find(c(:,1)==i); % indices of pairwise comparisions that Alg i stands on the first position
                 ind2 = find(c(:,2)==i);
                 for j = 1:numel(ind1)
@@ -37,8 +36,8 @@ switch Setting.Evaluate
             end
             [~,ind] = sort(win,'descend');
         end
-        Algs = Algs(ind(1:Setting.AlgN));
-        output = Algs;
+        AllAlgs = AllAlgs(ind(1:Setting.AlgN));
+        output = AllAlgs;
 
     case 'intensification'
         if strcmp(Setting.Compare,'average')
@@ -54,8 +53,8 @@ switch Setting.Evaluate
             rowInd = find(c(:,1)==length(OldAlgs));
             rowInd = rowInd(end);
             c = c(1:rowInd,:); % reserve comparisons between old and new algorithms
-            win = zeros(length(Algs),1);
-            for i = length(OldAlgs)+1:length(Algs) % for each new algorithm
+            win = zeros(length(AllAlgs),1);
+            for i = length(OldAlgs)+1:length(AllAlgs) % for each new algorithm
                 ind1 = find(c(:,1)==i); 
                 ind2 = find(c(:,2)==i);
                 for j = 1:numel(ind1)
@@ -75,8 +74,8 @@ switch Setting.Evaluate
         output = NewAlgs;
 
     case 'racing'
-        win = zeros(length(Algs),1);
-        for i = 1:length(Algs)
+        win = zeros(length(AllAlgs),1);
+        for i = 1:length(AllAlgs)
             ind1 = find(c(:,1)==i);
             ind2 = find(c(:,2)==i);
             for j = 1:numel(ind1)
@@ -95,7 +94,7 @@ switch Setting.Evaluate
             worseInd    = find(win==0);
             notWorseInd = [notWorseInd;datasample(worseInd,Setting.AlgN-numel(notWorseInd),'Replace',false)];
         end
-        Algs = Algs(notWorseInd);
-        output = Algs;
+        AllAlgs = AllAlgs(notWorseInd);
+        output = AllAlgs;
 end
 end

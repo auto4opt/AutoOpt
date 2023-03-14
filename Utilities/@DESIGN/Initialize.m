@@ -1,8 +1,8 @@
-function [Operators,Paras] = Initialize(Problem,Setting,N)
+function [Operators,Paras] = Initialize(Setting,N)
 % Initialize the designed algorithm(s).
 
-[~,OpSpace,ParaSpace,~,~] = Space(Problem,Setting);
-
+OpSpace   = Setting.OpSpace;
+ParaSpace = Setting.ParaSpace;
 Operators = cell(N,Setting.AlgP); % N algorithms, each with AlgP search 
 % pathways. Each cell contains a number of AlgP matrix within edges of the graph 
 % representation of a designed ealgorithm

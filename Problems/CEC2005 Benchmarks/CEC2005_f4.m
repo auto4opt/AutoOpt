@@ -37,6 +37,10 @@ switch varargin{end}
         output1 = Problem;
         output2 = Data;
         
+    case 'repair'
+        Decs = varargin{2};
+        output1 = Decs;
+    
     case 'evaluate'
         Data = varargin{1};
         o    = Data.o;

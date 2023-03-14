@@ -23,17 +23,4 @@ switch Problem.type{1}
     case 'permutation'
         % don't need to do anything       
 end
-
-% repair function for the stack problem
-if strcmp(Problem.name,'Stack')
-    D = size(decs,2);
-    Cons = Problem.cons; % D*1 cells, each cell is an |Upper-Lower|*1 logic matrix
-    for i = 1:D
-        InFesValue = find(Cons{i}==1);
-        FesValue = find(Cons{i}==0);
-        for j = 1:length(InFesValue)
-            decs(decs(:,i)==InFesValue(j),i) = FesValue(randperm(length(FesValue),1));
-        end
-    end
-end
 end

@@ -4,22 +4,22 @@ switch varargin{end}
         value   = varargin{1};
         Setting = varargin{2};
         % input problem
-        if any(strcmp(value,'problem'))
-            ind = find(strcmp(value,'problem'));
+        if any(strcmp(value,'Problem'))
+            ind = find(strcmp(value,'Problem'));
             prob  = value{ind+1};
             varargout{1} = prob;
         else
             error('Please set the targeted problem.');
         end
-        if strcmp(Setting.Mode,'design') && any(strcmp(value,'instanceTrain')) && any(strcmp(value,'instanceTest'))
-            ind = find(strcmp(value,'instanceTrain'));
+        if strcmp(Setting.Mode,'design') && any(strcmp(value,'InstanceTrain')) && any(strcmp(value,'InstanceTest'))
+            ind = find(strcmp(value,'InstanceTrain'));
             instanceTrain = value{ind+1}; % indexes of problem instances for designing algorithm
-            ind = find(strcmp(value,'instanceTest'));
+            ind = find(strcmp(value,'InstanceTest'));
             instanceTest  = value{ind+1}; % indexes of problem instances for testing the designed algorithm
             varargout{2} = instanceTrain;
             varargout{3} = instanceTest;
-        elseif strcmp(Setting.Mode,'solve') && any(strcmp(value,'instanceSolve'))
-            ind = find(strcmp(value,'instanceSolve'));
+        elseif strcmp(Setting.Mode,'solve') && any(strcmp(value,'InstanceSolve'))
+            ind = find(strcmp(value,'InstanceSolve'));
             instanceSolve = value{ind+1}; % indexes of problem instances to be solved
             varargout{2} = instanceSolve;
         else
@@ -102,10 +102,6 @@ switch varargin{end}
             ind = find(strcmp(value,'Surro'));
             Setting.Surro = value{ind+1};
         end
-        if any(strcmp(value,'TunePara'))
-            ind = find(strcmp(value,'TunePara'));
-            Setting.TunePara = value{ind+1};
-        end
         if any(strcmp(value,'AlgFile'))
             ind = find(strcmp(value,'AlgFile'));
             Setting.AlgFile = value{ind+1};
@@ -166,10 +162,16 @@ switch varargin{end}
                         'algorithm comparing method of "statistic". '])
                 end
 
-                % should set K when using the "racing" evaluation method
+                % should set RacingK when using the "racing" evaluation method
                 if strcmp(Setting.Evaluate,'racing') && isempty(Setting.RacingK)
                     error(['Please set "Setting.K" as the number of instances evaluated ' ...
                         'before the first round of racing.'])
+                end
+
+                % should set Surro when using the "approximate" evaluation method
+                if strcmp(Setting.Evaluate,'approximate') && isempty(Setting.Surro)
+                    error(['Please set "Setting.Surro" as the number of exact performance evaluations' ...
+                        ' when using surrogate.'])
                 end
 
                 % it is not necessary to use "statistic" algorithm comparing method when using the "approximate" evaluation method
@@ -190,10 +192,18 @@ switch varargin{end}
                         'involving the EDA operator'])
                 end
 
-                %
-                if Setting.TunePara == true
-                    warning(['Now is turning the parameters of the algorithm ' ...
-                        'specified in Space.m.'])
+                % AlgP cannot be very large
+                if Setting.AlgQ > 4
+                    warning(['AlgQ is recommended to be larger than 4 for ' ...
+                        'discrete and permutation problems due to the lack' ...
+                        ' of so many search operators'])
+                end
+
+                % better to have a large number of training intrances or have a large number of algorithm runs, in order to make the statistical test discriminative
+                if strcmp(Setting.Compare,'statistic')
+                    warning(['It is better to have a large number of training intrances ' ...
+                        'or have a large number of algorithm runs (set AlgRun to a large number), ' ...
+                        'in order to make the statistical test discriminative.']);
                 end
 
             case 'solve'

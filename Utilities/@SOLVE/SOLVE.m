@@ -15,6 +15,7 @@ classdef SOLVE < handle
                 dec = solution.RepairSol(dec,Problem);
                 switch Problem.type{3}
                     case 'certain' 
+                        dec = feval(str2func(Problem.name),Data,dec,'repair'); % repair solutions       
                         [obj,con,acc] = feval(str2func(Problem.name),Data,dec,'evaluate'); % evaluate fitness                    
                     case 'uncertain' % for uncertain problems
                         obj = zeros(Problem.sampleN,1);

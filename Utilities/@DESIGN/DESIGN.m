@@ -9,7 +9,7 @@ classdef DESIGN < handle
     end
 
     methods
-        % initialize the designed algorithms
+        %% initialize the designed algorithms
         function obj = DESIGN(varargin)
             if nargin > 0
                 Problem = varargin{1};
@@ -19,9 +19,8 @@ classdef DESIGN < handle
                 else
                     N = Setting.AlgN;
                 end
-
                 obj(1,N) = DESIGN;
-                [Operators,Paras] = obj.Initialize(Problem,Setting,N);
+                [Operators,Paras] = obj.Initialize(Setting,N);
                 [Operators,Paras] = obj.Repair(Operators,Paras,Problem,Setting);
                 for i = 1:N
                     obj(i).operator  = Operators(i,:);
@@ -35,9 +34,9 @@ classdef DESIGN < handle
             end
         end
 
-        % design new algorithms based on the current ones
+        %% design new algorithms based on the current ones
         function [objNew,Aux] = GetNew(obj,Problem,Setting,innerG,Aux)
-            [NewOp,NewPara,Aux] = obj.Disturb(Problem,Setting,innerG,Aux);
+            [NewOp,NewPara,Aux] = obj.Disturb(Setting,innerG,Aux);
             [Operators,Paras]   = obj.Repair(NewOp,NewPara,Problem,Setting);
             objNew(1,Setting.AlgN) = DESIGN;
             for i = 1:Setting.AlgN
@@ -51,15 +50,15 @@ classdef DESIGN < handle
             end
         end
 
-        % get algorithms' average performance or statistically comparing results
-        function value = GetPerformance(Algs,Setting,indInstance)
-            allPerform = zeros(numel(indInstance)*Setting.AlgRuns,length(Algs));
-            for i = 1:length(Algs)
+        %% get algorithms' average performance or statistically comparing results
+        function value = GetPerformance(obj,Setting,seedInstance)
+            allPerform = zeros(numel(seedInstance)*Setting.AlgRuns,length(obj));
+            for i = 1:length(obj)
                 % reshape algorithm i's all performance values (each run on each instance) to a column vector
-                if strcmp(Setting.Evaluate,'approximate') && sum(Algs(i).performanceApprox,'all') ~= 0 && sum(Algs(i).performance,'all') == 0
-                    allPerform(:,i) = reshape(Algs(i).performanceApprox(indInstance,:)',size(allPerform,1),1);
+                if strcmp(Setting.Evaluate,'approximate') && sum(obj(i).performanceApprox,'all') ~= 0 && sum(obj(i).performance,'all') == 0
+                    allPerform(:,i) = reshape(obj(i).performanceApprox(seedInstance,:)',size(allPerform,1),1);
                 else
-                    allPerform(:,i) = reshape(Algs(i).performance(indInstance,:)',size(allPerform,1),1);
+                    allPerform(:,i) = reshape(obj(i).performance(seedInstance,:)',size(allPerform,1),1);
                 end
             end
             switch Setting.Compare
@@ -71,53 +70,53 @@ classdef DESIGN < handle
             end
         end
 
-        % design new algorithms based on the current ones
-        [NewOp,NewPara,Aux] = Disturb(Algs,Problem,Setting,innerG,Aux)
+        %% design new algorithms based on the current ones
+        [NewOp,NewPara,Aux] = Disturb(obj,Problem,Setting,innerG,Aux)
 
-        % exactly evaluate algorithms' performance
-        Algs = Evaluate(Algs,Problem,Data,Setting,indInstance)
+        %% exactly evaluate algorithms' performance
+        obj = Evaluate(obj,Problem,Data,Setting,indInstance)
 
-        % approximatly estimate algorithms' performance
-        Algs = Estimate(Algs,Problem,Setting,indInstance,Surrogate)
+        %% approximatly estimate algorithms' performance
+        obj = Estimate(obj,Problem,Setting,indInstance,Surrogate)
 
-        function Alg = Construct(Alg,operator,parameter)
-            Alg.operatorPheno  = operator;
-            Alg.parameterPheno = parameter;
+        %% select algorithms
+        Algs = Select(obj,Problem,Data,Setting,indInstance)
+
+        function obj = Construct(obj,operator,parameter)
+            obj.operatorPheno  = operator;
+            obj.parameterPheno = parameter;
         end
         
-        function value = avePerformAll(Algs)
-            value = zeros(length(Algs),1);
-            for i = 1:length(Algs)
-                value(i) = mean(Algs(i).performance,'all');
+        function value = avePerformAll(obj)
+            value = zeros(length(obj),1);
+            for i = 1:length(obj)
+                value(i) = mean(obj(i).performance,'all');
             end
         end
 
-        function value = avePerformApproxAll(Algs)
-            value = zeros(length(Algs),1);
-            for i = 1:length(Algs)
-                value(i) = mean(Algs(i).performanceApprox,'all');
+        function value = avePerformApproxAll(obj)
+            value = zeros(length(obj),1);
+            for i = 1:length(obj)
+                value(i) = mean(obj(i).performanceApprox,'all');
             end
         end
 
-        function value = avePerformPer(Algs,ind)
-            value = zeros(length(Algs),1);
-            for i = 1:length(Algs)
-                value(i) = mean(Algs(i).performance(ind,:));
+        function value = avePerformPer(obj,ind)
+            value = zeros(length(obj),1);
+            for i = 1:length(obj)
+                value(i) = mean(obj(i).performance(ind,:));
             end
         end
 
-        function value = avePerformApproxPer(Algs,ind)
-            value = zeros(length(Algs),1);
-            for i = 1:length(Algs)
-                value(i) = mean(Algs(i).performanceApprox(ind,:));
+        function value = avePerformApproxPer(obj,ind)
+            value = zeros(length(obj),1);
+            for i = 1:length(obj)
+                value(i) = mean(obj(i).performanceApprox(ind,:));
             end
         end
     end
 
-    methods(Static)
-        % main process
-        
-
+    methods(Static)        
         % initialize graph representations of the designed algorithms
         [Operators,Paras] = Initialize(Problem,Setting,N)
 
@@ -126,8 +125,5 @@ classdef DESIGN < handle
         
         % decode the designed algorithms from their graph representations
         [currOp,currPara] = Decode(Operators,Paras,Problem,Setting) 
-
-        % select algorithms
-        Algs = Select(Algs,NewAlgs,Problem,Data,Setting,indInstance)
     end
 end

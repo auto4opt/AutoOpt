@@ -41,6 +41,11 @@ else
             currOp{1}.Search = {'search_de_current','',[-inf,1]};
             currOp{1}.Update = 'update_pairwise'; 
             currPara{1}.Search = {[0.2,0.2],[]}; % {scaling factor, crossover probability}
+        case 'Continuous Random Search'
+            currOp{1}.Choose = 'choose_traverse';
+            currOp{1}.Search = {'reinit_continuous','',[-inf,1]};
+            currOp{1}.Update = 'update_greedy';
+        
         case 'Discrete Genetic Algorithm'
             currOp{1}.Choose = 'choose_tournament';
             currOp{1}.Search = {'cross_point_uniform','search_reset_rand',[-inf,1]};
@@ -51,6 +56,16 @@ else
             currOp{1}.Search = {'search_reset_one','',[0.05,10]; % [fitness improve rate,innerGmax]
                                 'reinit_discrete','',[-inf,1]};
             currOp{1}.Update = 'update_greedy';
+        case 'Discrete Simulated Annealing'
+            currOp{1}.Choose = 'choose_traverse';
+            currOp{1}.Search = {'search_reset_one','',[-inf,1]};
+            currOp{1}.Update = 'update_simulated_annealing'; 
+            currPara{1}.Update = 0.1; % initial temperture 
+        case 'Discrete Random Search'
+            currOp{1}.Choose = 'choose_traverse';
+            currOp{1}.Search = {'reinit_discrete','',[-inf,1]};
+            currOp{1}.Update = 'update_greedy';
+        
         case 'Permutation Genetic Algorithm'
             currOp{1}.Choose = 'choose_tournament';
             currOp{1}.Search = {'cross_order_two','search_swap',[-inf,1]};
@@ -60,11 +75,20 @@ else
             currOp{1}.Search = {'search_insert','',[0.05,10];
                                 'reinit_permutation','',[-inf,1]};
             currOp{1}.Update = 'update_greedy';
+        case 'Permutation Simulated Annealing'
+            currOp{1}.Choose = 'choose_traverse';
+            currOp{1}.Search = {'search_insert','',[-inf,1]};
+            currOp{1}.Update = 'update_simulated_annealing';
+            currPara{1}.Update = 0.1; % initial temperture  
         case 'Permutation Variable Neighborhood Search'
             currOp{1}.Choose = 'choose_traverse';
             currOp{1}.Search = {'search_swap','',[0.05,10];
                                 'search_scramble','',[0.05,10];
                                 'search_insert','',[0.05,10]};
+            currOp{1}.Update = 'update_greedy';
+        case 'Permutation Random Search'
+            currOp{1}.Choose = 'choose_traverse';
+            currOp{1}.Search = {'reinit_permutation','',[-inf,1]};
             currOp{1}.Update = 'update_greedy';
         case 'ICA'
             currOp{1}.Choose = 'choose_ica';

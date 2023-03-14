@@ -122,15 +122,15 @@ if Setting.AlgP == 1 % if the designed algorithm has a single search pathway
             innerG  = 1;
             while improve(1) >= Operator{1}.Search{i,end}(1) && innerG <= Operator{1}.Search{i,end}(2) % termination condition of search operator i
                 % choose where to search from
-                [ind,~] = feval(str2func(Operator{1}.Choose),Solution,Problem,Para{1}.Choose,'execute');
+                [ind,~] = feval(str2func(Operator{1}.Choose),Solution,Problem,Para{1}.Choose,Aux{1},G,innerG,Data,'execute');
 
 
                 % search from the chosen solution(s)
-                [New,Aux{1}] = feval(str2func(Operator{1}.Search{i,1}),Solution(ind),Problem,Para{1}.Search{i,1},G,Aux{1},innerG,'execute');
+                [New,Aux{1}] = feval(str2func(Operator{1}.Search{i,1}),Solution(ind),Problem,Para{1}.Search{i,1},Aux{1},G,innerG,Data,'execute');
                 
                 if ~isempty(Operator{1}.Search{i,2}) % if designed a sexual evolutonary algorithm with crossover and mutation
                     New = SOLVE.RepairSol(New,Problem);
-                    [New,Aux{1}] = feval(str2func(Operator{1}.Search{i,2}),New,Problem,Para{1}.Search{i,2},G,Aux{1},innerG,'execute');
+                    [New,Aux{1}] = feval(str2func(Operator{1}.Search{i,2}),New,Problem,Para{1}.Search{i,2},Aux{1},G,innerG,Data,'execute');
                 end
                 New = SOLVE(New,Problem,Data);
 
@@ -141,11 +141,11 @@ if Setting.AlgP == 1 % if the designed algorithm has a single search pathway
                 end
 
                 % update solution(s)
-                [Solution,~] = feval(str2func(Operator{1}.Update),[Solution,New],Problem,Para{1}.Update,G,'execute');
+                [Solution,~] = feval(str2func(Operator{1}.Update),[Solution,New],Problem,Para{1}.Update,Aux{1},G,innerG,Data,'execute');
 
                 % update archive(s)
                 for j = 1:length(Operator{1}.Archive)
-                    [Archive{i},~] = feval(str2func(Operator{1}.Archive{j}),Solution,Problem,'execute');
+                    [Archive{i},~] = feval(str2func(Operator{1}.Archive{j}),Solution,Archive{i},Problem,'execute');
                 end
                 [ArchSolution,~] = archive_best(Solution,ArchSolution,'execute');
 
@@ -173,7 +173,7 @@ elseif Setting.AlgP > 1 % if the designed algorithm has multiple search pathways
     while G <= Problem.Gmax && t < Tmax && min(ArchSolution.fits) > Thres
         tic;
         % choose where to search from
-        [ind,~] = feval(str2func(Operator{1}.Choose),Solution,Problem,Para{1}.Choose,'execute');
+        [ind,~] = feval(str2func(Operator{1}.Choose),Solution,Problem,Para{1}.Choose,Aux{i},G,innerG,Data,'execute');
 
         % search from the chosen solution(s)
         allNew = [];
@@ -186,7 +186,7 @@ elseif Setting.AlgP > 1 % if the designed algorithm has multiple search pathways
                 ind(1:eachN) = []; % delete used indices
             end
             % search
-            [New,Aux{i}] = feval(str2func(Operator{i}.Search{1}),Solution(currInd),Problem,Para{i}.Search{1},G,Aux{i},innerG,'execute');
+            [New,Aux{i}] = feval(str2func(Operator{i}.Search{1}),Solution(currInd),Problem,Para{i}.Search{1},Aux{i},G,innerG,Data,'execute');
             New = SOLVE(New,Problem,Data);
             if strcmp(Operator{i}.Search{1},'search_pso') % update pbest and gbest for PSO' particle fly operator
                 Aux{i} = para_pso(New,Problem,Aux{i});
@@ -197,11 +197,11 @@ elseif Setting.AlgP > 1 % if the designed algorithm has multiple search pathways
         end
 
         % update solution(s)
-        [Solution,~] = feval(str2func(Operator{1}.Update),[Solution,allNew],Problem,Para{1}.Update,G,'execute');
+        [Solution,~] = feval(str2func(Operator{1}.Update),[Solution,allNew],Problem,Para{1}.Update,Aux{i},G,innerG,Data,'execute');
 
         % update archive(s)
         for i = 1:length(Operator{1}.Archive)
-            [Archive{i},~] = feval(str2func(Operator{1}.Archive{i}),Solution,Problem,'execute');
+            [Archive{i},~] = feval(str2func(Operator{1}.Archive{i}),Solution,Archive{i},Problem,'execute');
         end
         [ArchSolution,~] = archive_best(Solution,ArchSolution,'execute');
 

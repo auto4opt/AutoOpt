@@ -1,49 +1,49 @@
-function Algs = Evaluate(Algs,Problem,Data,Setting,indInstance)
+function NewAlgs = Evaluate(NewAlgs,Problem,Data,Setting,seedInstance)
 % Evaluate the designed algorithm's performance on the targeted problem.
 
-for i = 1:length(Algs)
-    Operator    = Algs(i).operatorPheno;
-    Parameter   = Algs(i).parameterPheno;
-    Performance = Algs(i).performance;
-    for j = 1:length(Problem(indInstance))
-        switch Problem(indInstance(j)).type{2}
+for i = 1:length(NewAlgs)
+    Operator    = NewAlgs(i).operatorPheno;
+    Parameter   = NewAlgs(i).parameterPheno;
+    Performance = NewAlgs(i).performance;
+    for j = 1:length(Problem(seedInstance))
+        switch Problem(seedInstance(j)).type{2}
             case 'static'
                 for k = 1:Setting.AlgRuns
-                    [ArchSolution,t] = RunDesign(Operator,Parameter,Problem(indInstance(j)),Data(indInstance(j)),Setting);
+                    [ArchSolution,t] = RunDesign(Operator,Parameter,Problem(seedInstance(j)),Data(seedInstance(j)),Setting);
                     switch Setting.Metric
                         case 'quality' % solution quality as performance metric
-                            Performance(indInstance(j),k) = min(ArchSolution.fits); % best performance 
+                            Performance(seedInstance(j),k) = min(ArchSolution.fits); % best performance 
                         case {'runtimeFE','runtimeSec'} % running time as performance metric
-                            Performance(indInstance(j),k) = t;
+                            Performance(seedInstance(j),k) = t;
                         case 'auc' % AUC as performance metric
                             TimePoints = ceil(Setting.Tmax./Setting.ProbN); % time (Tmax) should be function evaluations when using auc
-                            Performance(indInstance(j),k) = 1/(sum(ArchSolution(TimePoints).fits <= Setting.Thres')/numel(TimePoints)+eps); % 1/AUC, the smaller the better performance
+                            Performance(seedInstance(j),k) = 1/(sum(ArchSolution(TimePoints).fits <= Setting.Thres')/numel(TimePoints)+eps); % 1/AUC, the smaller the better performance
                     end
                 end
 
             case 'sequential'
                 for k = 1:Setting.AlgRuns
-                    while Data(indInstance(j)).continue == true
-                        [ArchSolution,t] = RunDesign(Operator,Parameter,Problem(indInstance(j)),Data(indInstance(j)),Setting);
+                    while Data(seedInstance(j)).continue == true
+                        [ArchSolution,t] = RunDesign(Operator,Parameter,Problem(seedInstance(j)),Data(seedInstance(j)),Setting);
                         switch Setting.Metric
                             case 'quality'
-                                Performance(indInstance(j),k) = Performance(indInstance(j),k) + min(ArchSolution.fits);
+                                Performance(seedInstance(j),k) = Performance(seedInstance(j),k) + min(ArchSolution.fits);
                             case {'runtimeFE','runtimeSec'}
-                                Performance(indInstance(j),k) = Performance(indInstance(j),k) + t;
+                                Performance(seedInstance(j),k) = Performance(seedInstance(j),k) + t;
                             case 'auc'
                                 TimePoints = ceil(Setting.Tmax./Setting.ProbN);
-                                Performance(indInstance(j),k) = Performance(indInstance(j),k) + 1/sum(ArchSolution(TimePoints).fits <= Setting.QuaThres)/numel(TimePoints);
+                                Performance(seedInstance(j),k) = Performance(seedInstance(j),k) + 1/sum(ArchSolution(TimePoints).fits <= Setting.QuaThres)/numel(TimePoints);
                         end
                         % update the current instance of the problem sequence
                         [~,best] = min(ArchSolution.fits);
-                        [thisProblem,thisData,~] = feval(str2func(Problem(indInstance(j)).name),Problem(indInstance(j)),Data(indInstance(j)),ArchSolution(best),'sequence');
-                        Problem(indInstance(j)) = thisProblem;
-                        Data(indInstance(j)) = thisData;
+                        [thisProblem,thisData,~] = feval(str2func(Problem(seedInstance(j)).name),Problem(seedInstance(j)),Data(seedInstance(j)),ArchSolution(best),'sequence');
+                        Problem(seedInstance(j)) = thisProblem;
+                        Data(seedInstance(j)) = thisData;
                     end
                 end
         end
     end
-    Algs(i).performance = Performance;
+    NewAlgs(i).performance = Performance;
 end
 end
 
@@ -98,18 +98,18 @@ end
 if Setting.AlgP == 1 % if the designed algorithm has a single search pathway
     while G <= Problem.Gmax && t < Tmax && min(ArchSolution.fits) > Thres
         tic;
-        for i = 1:size(Operator{1}.Search,1)
+        for i = 1:size(Operator{1}.Search,1) % for each search operation
             improve = 1;
             innerG  = 1;
             while improve(1) >= Operator{1}.Search{i,end}(1) && innerG <= Operator{1}.Search{i,end}(2) % termination condition of search operator i
                 % choose where to search from
-                [ind,~] = feval(str2func(Operator{1}.Choose),Solution,Problem,Para{1}.Choose,'execute');
+                [ind,~] = feval(str2func(Operator{1}.Choose),Solution,Problem,Para{1}.Choose,Aux{1},G,innerG,Data,'execute');
 
                 % search from the chosen solution(s)
-                [New,Aux{1}] = feval(str2func(Operator{1}.Search{i,1}),Solution(ind),Problem,Para{1}.Search{i,1},G,Aux{1},innerG,'execute');
+                [New,Aux{1}] = feval(str2func(Operator{1}.Search{i,1}),Solution(ind),Problem,Para{1}.Search{i,1},Aux{1},G,innerG,Data,'execute');
                 if ~isempty(Operator{1}.Search{i,2}) % if designed a sexual evolutonary algorithm with crossover and mutation
                     New = SOLVE.RepairSol(New,Problem);
-                    [New,Aux{1}] = feval(str2func(Operator{1}.Search{i,2}),New,Problem,Para{1}.Search{i,2},G,Aux{1},innerG,'execute');
+                    [New,Aux{1}] = feval(str2func(Operator{1}.Search{i,2}),New,Problem,Para{1}.Search{i,2},Aux{1},G,innerG,Data,'execute');
                 end
                 New = SOLVE(New,Problem,Data);
 
@@ -120,11 +120,11 @@ if Setting.AlgP == 1 % if the designed algorithm has a single search pathway
                 end
                 
                 % update solution(s)
-                [Solution,~] = feval(str2func(Operator{1}.Update),[Solution,New],Problem,Para{1}.Update,G,'execute');
+                [Solution,~] = feval(str2func(Operator{1}.Update),[Solution,New],Problem,Para{1}.Update,Aux{1},G,innerG,Data,'execute');
 
                 % update archive(s)
                 for j = 1:length(Operator{1}.Archive)
-                    [Archive{i},~] = feval(str2func(Operator{1}.Archive{j}),Solution,Problem,'execute');
+                    [Archive{i},~] = feval(str2func(Operator{1}.Archive{j}),Solution,Archive{i},Problem,'execute');
                 end
                 [ArchSolution,~] = archive_best(Solution,ArchSolution,'execute');
                 
@@ -152,7 +152,7 @@ elseif Setting.AlgP > 1 % if the designed algorithm has multiple search pathways
     while G <= Problem.Gmax && t < Tmax && min(ArchSolution.fits) > Thres
         tic;
         % choose where to search from
-        [ind,~] = feval(str2func(Operator{1}.Choose),Solution,Problem,Para{1}.Choose,'execute');
+        [ind,~] = feval(str2func(Operator{1}.Choose),Solution,Problem,Para{1}.Choose,Aux{i},G,innerG,Data,'execute');
 
         % search from the chosen solution(s)
         allNew = [];
@@ -165,7 +165,7 @@ elseif Setting.AlgP > 1 % if the designed algorithm has multiple search pathways
                 ind(1:eachN) = []; % delete used indices
             end
             % search
-            [New,Aux{i}] = feval(str2func(Operator{i}.Search{1}),Solution(currInd),Problem,Para{i}.Search{1},G,Aux{i},innerG,'execute');
+            [New,Aux{i}] = feval(str2func(Operator{i}.Search{1}),Solution(currInd),Problem,Para{i}.Search{1},Aux{i},G,innerG,Data,'execute');
             New = SOLVE(New,Problem,Data);
             if strcmp(Operator{i}.Search{1},'search_pso') % update pbest and gbest for PSO' particle fly operator
                 Aux{i} = para_pso(New,Problem,Aux{i});
@@ -176,11 +176,11 @@ elseif Setting.AlgP > 1 % if the designed algorithm has multiple search pathways
         end
 
         % update solution(s)
-        [Solution,~] = feval(str2func(Operator{1}.Update),[Solution,allNew],Problem,Para{1}.Update,G,'execute');
+        [Solution,~] = feval(str2func(Operator{1}.Update),[Solution,allNew],Problem,Para{1}.Update,Aux{i},G,innerG,Data,'execute');
 
         % update archive(s)
         for i = 1:length(Operator{1}.Archive)
-            [Archive{i},~] = feval(str2func(Operator{1}.Archive{i}),Solution,Problem,'execute');
+            [Archive{i},~] = feval(str2func(Operator{1}.Archive{i}),Solution,Archive{i},Problem,'execute');
         end
         [ArchSolution,~] = archive_best(Solution,ArchSolution,'execute');
 

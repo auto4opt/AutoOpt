@@ -1,15 +1,14 @@
 function AutoOpt(varargin)
-% The main function of AutoOpt.
+% The main function of AutoOptLib.
 % -------------------------------------------------------------------------
-% Problem settings:
-% P       : input problem name
-% prob    : input problem properity file name (Stack.m/Place.m)
-% instance: indexes of the targeting problem instances
-% type    : {continuous\discrete\permutation, static\sequential, certain\uncertain}
+% Settings of the targeted problem:
+% Problem      : problem name
+% InstanceTrain: indexes of training instances
+% InstanceTest : indexes of test instances
 % -------------------------------------------------------------------------
 % Settings of the designed algorithm(s):
 % Setting.Mode    : design/solve, i.e., the aim is to designing algorithm or solving problem
-% Setting.AlgP    : number of searth pathways in a designed algorithm
+% Setting.AlgP    : number of search pathways in a designed algorithm
 % Setting.AlgQ    : maximum number of search operators in a search pathway
 % Setting.Archive : name of the archive(s) that will be used in the designed algorithm(s)
 % Setting.LSRange : range of parameter values that make the algorithm perform local search
@@ -21,35 +20,37 @@ function AutoOpt(varargin)
 % Setting.AlgRuns : number of algorithm runs on each problem instance
 % Setting.ProbN   : population size of the designed algorithms for solving the targeted problem instances
 % Setting.ProbFE  : number of fitness evaluations of the designed algorithms for solving the targeted problem instances
-% Setting.Estimate: {quality/runtimeFE/runtimeSec/auc,
-%                    average/statistic,
-%                    default/approximate/intensification/racing}
-%                   {algorithm's performance metric,
-%                    method for evaluating designed algoritm's performance,
-%                    method for comparing designed algoritm's performance}
+% Setting.Metric  : quality/runtimeFE/runtimeSec/auc, i.e., metric for evaluating algorithms' performance 
+% Setting.Evaluate: exact/approximate/intensification/racing, i.e., method for evaluating algoritm's performance
+% Setting.Compare : average/statistic, i.e., method for comparing the performance of algorithms
 % Setting.AlgFE   : number of function evaluations for designing algorithms
-% Setting.Tmax    : maximum running time, time can be function evaluation or wall clock time (in second)
+% Setting.Tmax    : maximum running time, time can be function evaluations or wall clock time (in second)
 % Setting.Thres   : the lowest acceptable performance of the design algorithms, the performance can be the solution quality
 % Setting.RacingK : number of instances evaluated before the first round of racing
+% Setting.Surro   : number of exact performance evaluations when using surrogate 
 % -------------------------------------------------------------------------
 % Settings of solving the targeted problem:
 % Setting.Alg     : algorithm file name, e.g., Algs
 % -------------------------------------------------------------------------
 % Example of running AutoOpt: 
 %    AutoOpt()
-%    AutoOpt('mode','design','problem','CEC2005_f1','instanceTrain',[1,2],'instanceTest',3)
-%    AutoOpt('mode','solve','problem','CEC2005_f1','instanceSolve',[1,2],'AlgFile','Algs')
+%    AutoOpt('Mode','design','Problem','CEC2005_f1','InstanceTrain',[1,2],'InstanceTest',3)
+%    AutoOpt('Mode','design','Problem','CEC2005_f1','InstanceTrain',[1,3],'InstanceTest',2,'AlgN',2,'AlgFE',4,'AlgRuns',1,'Compare','average')
+%    AutoOpt('Mode','solve','Problem','CEC2005_f1','InstanceSolve',[1,2],'AlgFile','Algs','ProbN',10,'ProbFE',100,'AlgRuns',2)
+% -------------------------------------------------------------------------
+%
+% -------------------------------------------------------------------------
 
-% cd(fileparts(mfilename('fullpath')));
-% addpath(genpath(cd));
+cd(fileparts(mfilename('fullpath')));
+addpath(genpath(cd));
 
 if nargin == 0 % call the GUI
     APP;
 else 
     % get mode
-    if any(strcmp(varargin,'mode'))
+    if any(strcmp(varargin,'Mode'))
         Setting = struct;
-        ind = find(strcmp(varargin,'mode'));
+        ind = find(strcmp(varargin,'Mode'));
         Setting.Mode  = varargin{ind+1};
     else
         error('Please set the mode to "design" or "solve".');
@@ -58,6 +59,7 @@ else
     % get problem
     if strcmp(Setting.Mode,'design')
         [prob,instanceTrain,instanceTest] = Input(varargin,Setting,'data');
+
     elseif strcmp(Setting.Mode,'solve')
         [prob,instanceSolve] = Input(varargin,Setting,'data');
     end
@@ -66,28 +68,27 @@ else
     switch Setting.Mode
         case 'design'
             Setting.AlgP     = 1;
-            Setting.AlgQ     = 2;
+            Setting.AlgQ     = 3;
             Setting.Archive  = '';
-            Setting.LSRange  = 0.2;
             Setting.IncRate  = 0.05;
-            Setting.ProbN    = 50;
-            Setting.ProbFE   = 1000;
-            Setting.InnerFE  = 100;
-            Setting.AlgN     = 10;
-            Setting.AlgFE    = 500;
-            Setting.AlgRuns  = 10;
+            Setting.ProbN    = 20;
+            Setting.ProbFE   = 2000;
+            Setting.InnerFE  = 200;
+            Setting.AlgN     = 5;
+            Setting.AlgFE    = 2000;
+            Setting.AlgRuns  = 5;
             Setting.Metric   = 'quality'; % quality/runtimeFE/runtimeSec/auc
-            Setting.Compare  = 'average'; % average/statistic
-            Setting.Evaluate = 'default'; % default/approximate/intensification/racing
+            Setting.Evaluate = 'exact';   % exact/approximate/intensification/racing
+            Setting.Compare  = 'statistic'; % average/statistic
             Setting.Tmax     = [];
             Setting.Thres    = [];
-            Setting.RacingK  = max(1,round(length(instanceTrain)*0.2));
-            Setting.Surro    = Setting.ProbFE*0.2; % number of exact performance evaluations
-            Setting.TunePara = false; % true/false
+            Setting.LSRange  = 0.3;
+            Setting.RacingK  = max(1,round(length(instanceTrain)*0.2)); 
+            Setting.Surro    = Setting.ProbFE*0.3;
             Setting          = Input(varargin,Setting,'parameter'); % replace default parameters with user-defined ones
             Setting          = Input(Setting,'check'); % avoid conflicting parameter settings
-            [algs,performance,performTrend] = Process(prob,instanceTrain,instanceTest,Setting);
-            Output(algs,performance,performTrend,instanceTest,Setting);
+            [algs,algTrace]  = Process(prob,instanceTrain,instanceTest,Setting);
+            Output(algs,algTrace,instanceTrain,instanceTest,Setting);
 
         case 'solve'
             Setting.Mode = 'solve';
@@ -101,7 +102,7 @@ else
             Setting.AlgRuns  = 31;
             Setting          = Input(varargin,Setting,'parameter');
             Setting          = Input(Setting,'check');
-            [bestSolutions,allSolutions,~] = Process(prob,instanceSolve,Setting);
+            [bestSolutions,allSolutions] = Process(prob,instanceSolve,Setting);
             Output(bestSolutions,allSolutions,instanceSolve,Setting);
     end
 end

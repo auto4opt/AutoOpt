@@ -1,3 +1,3 @@
-The Matlab source code of the AutoOpt platform.
+The Matlab source code of AutoOptLib.
 
-Qi Zhao, Bai Yan, Taiwei Hu, Xianglong Chen, Yuhui Shi. The AutoOpt Platform: Automatically Designing Metaheuristic Optimization Algorithms in MATLAB.
+Qi Zhao, Bai Yan, Taiwei Hu, Xianglong Chen, Yuhui Shi. AutoOptLib: Automatically Designing Metaheuristic Optimization Optimization Algorithms in MATLAB.

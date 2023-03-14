@@ -1,7 +1,9 @@
-function [NewOp,NewPara,Aux]= Disturb(Algs,Problem,Setting,innerG,Aux)
+function [NewOp,NewPara,Aux]= Disturb(Algs,Setting,innerG,Aux)
 % Design new algorithm(s) based on the current ones.
 
-[~,OpSpace,ParaSpace,ParaLocalSpace,~] = Space(Problem,Setting);
+OpSpace   = Setting.OpSpace;
+ParaSpace = Setting.ParaSpace;
+ParaLocalSpace = Setting.ParaLocalSpace;
 
 % get indices of non-empty parameters
 indNonEmptyPara = find(~cellfun(@isempty,ParaSpace)==1);
@@ -74,6 +76,8 @@ for i = 1:Setting.AlgN
                     samplePool = [indPool,+inf,-inf]; % -inf: delete the current operator
                 elseif numel(indSearch) > 1 && numel(indSearch) == Setting.AlgQ
                     samplePool = [indPool,-inf];
+                else
+                    samplePool = indPool;
                 end
                 sampleInd = datasample(samplePool,1);
                 if sampleInd == +inf
