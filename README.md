@@ -8,9 +8,11 @@ Human experts can be involved but are not necessary during the design process. T
 
 ```AutoOptLib``` provides throughout support for the whole algorithm design process, including 1) over 40 metaheuristic/heuristic algorithmic components for continuous, discrete, and permutation problems with/without constraints and uncertainties, 2) flexible algorithm representation for evolving diverse metaheuristic algorithm structures, 3) three types of design objectives and various design techniques for different experimentation and application scenarios, and 4) useful experimental tools and graphic user interface for practicability and accessibility.
 
+A comprehensive introduction to ```AutoOptLib``` can be found [here](https://arxiv.org/abs/2303.06536).
+
 ## How to Use AutoOptLib 
 
-Please read the [Introduction](https://arxiv.org/abs/2303.06536) for understanding AutoOptLib. The documentation of AutoOptLib will be coming soon for a step-by-step user guidance.
+Please read the [Introduction](https://arxiv.org/abs/2303.06536) for understanding ```AutoOptLib```. The documentation of AutoOptLib will be coming soon for a step-by-step user guidance.
 
 ## Citation for AutoOptLib
 ```AutoOptLib``` is free for academic use. Please reference the following paper if using AutoOptLib in your publication:
