@@ -15,7 +15,7 @@ Please read the [Introduction](https://arxiv.org/abs/2303.06536) for understandi
 @article{zhao2023autooptlib,
   title={AutoOptLib: A Library of Automatically Designing Metaheuristic Optimization Algorithms in Matlab},
   author={Zhao, Qi and Yan, Bai and Hu, Taiwei and Chen, Xianglong and Shi, Yuhui},
-  journal={arXiv preprint 	arXiv:2303.06536}, 
+  journal={arXiv preprint arXiv:2303.06536}, 
   year={2023}
   }
 ```
