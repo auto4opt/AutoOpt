@@ -1,7 +1,6 @@
 # AutoOptLib (A MATLAB library for automatically designing metaheuristic optimization algorithms)
 
 [![GNU General Public License v3.0](https://img.shields.io/badge/license-GNU%20GPL--v3.0-green.svg)](https://github.com/qz89/AutoOpt/blob/main/LICENSE)
-[![Documentation Status](https://arxiv.org/abs/2303.06536)](https://arxiv.org/abs/2303.06536)
 
 ```AutoOptLib``` is A MATLAB library for automatically designing metaheuristic optimization algorithms. The library includes 1) over 40 algorithmic components for continuous, discrete, and permutation problems, 2) flexible algorithm representation for evolving diverse algorithm structures, 3) three types of design objectives and various design techniques for different experimentation and application scenarios, and 4) useful experimental tools and graphic user interface for practicability and accessibility.
 
