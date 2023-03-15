@@ -2,6 +2,7 @@
 
 [![GNU General Public License v3.0](https://img.shields.io/badge/license-GNU%20GPL--v3.0-green.svg)](https://github.com/qz89/AutoOpt/blob/main/LICENSE)
 
+## Introduction
 ```AutoOptLib``` is a MATLAB library for automatically designing metaheuristic optimization algorithms. It leverages computing resources to replace human experts to conceive, build up, and verify the design choices of metaheuristic algorithms, subsequently producing algorithms that are fit for solving a targeted optimization problem. 
 
 Human experts can be involved but are not necessary during the design process. Therefore, ```AutoOptLib``` could make high-performance algorithms accessible to a much broader range of researchers and practitioners. This is promising in response to the lack of labor and time resources to handle tricky problems. Moreover, by leveraging computing power to fully explore the design choices, ```AutoOptLib``` could reach or surpass human-level design, thereby gaining enhanced performance compared with human problem-solving. 
@@ -10,11 +11,10 @@ Human experts can be involved but are not necessary during the design process. T
 
 A comprehensive introduction to ```AutoOptLib``` can be found [here](https://arxiv.org/abs/2303.06536).
 
-## How to Use AutoOptLib 
-
+## How to Use
 Please read the [Introduction](https://arxiv.org/abs/2303.06536) for understanding ```AutoOptLib```. The documentation of AutoOptLib will be coming soon for a step-by-step user guidance.
 
-## Citation for AutoOptLib
+## Cite
 ```AutoOptLib``` is free for academic use. Please reference the following paper if using AutoOptLib in your publication:
 
 ```bash
@@ -30,4 +30,4 @@ Please read the [Introduction](https://arxiv.org/abs/2303.06536) for understandi
 
 You may ask questions at the [Issues](https://github.com/qz89/AutoOpt/issues) block and upload your contribution by pulling request. 
 
-For any comments and suggestions, please contact Dr. Qi Zhao at zhaoq@sustech.edu.cn.
+For any comment and suggestion, please feel free to contact Dr. Qi Zhao at zhaoq@sustech.edu.cn.
