@@ -30,4 +30,4 @@ Please read the [Introduction](https://arxiv.org/abs/2303.06536) for understandi
 
 You may ask questions at the [Issues](https://github.com/qz89/AutoOpt/issues) block and upload your contribution by pulling request. 
 
-For any comments and suggestions, please contact Dr. Qi Zhao at [zhaoq@sustech.edu.cn].
+For any comments and suggestions, please contact Dr. Qi Zhao at zhaoq@sustech.edu.cn.
