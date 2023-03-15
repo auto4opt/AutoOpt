@@ -24,7 +24,7 @@ Please read the [Introduction](https://arxiv.org/abs/2303.06536) for understandi
 ```
 
 ## Support
-```AutoOptLib``` is developed and actively maintained by the Swarm Intelligence Lab at the Department of Computer Science and Engineering, Southern University of Science and Technology, China. 
+```AutoOptLib``` is developed and actively maintained by the Swarm Intelligence Lab at the Department of Computer Science and Engineering, Southern University of Science and Technology. 
 
 Please send your questions at the [Issues](https://github.com/qz89/AutoOpt/issues) block and upload your contribution by [Pulling requests](https://github.com/qz89/AutoOpt/pulls). 
 
