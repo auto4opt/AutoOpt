@@ -6,8 +6,6 @@
 
 Human experts can be involved but are not necessary during the design process. Therefore, ```AutoOptLib``` could make high-performance algorithms accessible to a much broader range of researchers and practitioners. This is promising in response to the lack of labor and time resources to handle tricky problems. Moreover, by leveraging computing power to fully explore the design choices, ```AutoOptLib``` could reach or surpass human-level design, thereby gaining enhanced performance compared with human problem-solving. 
 
-```AutoOptLib``` provides throughout support for the whole algorithm design process, including 1) over 40 metaheuristic/heuristic algorithmic components for continuous, discrete, and permutation problems with/without constraints and uncertainties, 2) flexible algorithm representation for evolving diverse metaheuristic algorithm structures, 3) three types of design objectives and various design techniques for different experimentation and application scenarios, and 4) useful experimental tools and graphic user interface for practicability and accessibility.
-
 A comprehensive introduction to ```AutoOptLib``` can be found [here](https://arxiv.org/abs/2303.06536).
 
 ## How to Use
