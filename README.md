@@ -9,7 +9,7 @@ Human experts are not necessary during the design process. Therefore, ```AutoOpt
 A comprehensive introduction to ```AutoOptLib``` can be found [here](https://arxiv.org/abs/2303.06536).
 
 ## How to Use
-Please read the [Introduction](https://arxiv.org/abs/2303.06536) for understanding ```AutoOptLib```. The documentation of AutoOptLib will be coming soon for a step-by-step user guidance.
+Please read the [Introduction](https://arxiv.org/abs/2303.06536) for understanding ```AutoOptLib```. The documentation with step-by-step user guidance will be coming soon.
 
 ## Cite
 ```AutoOptLib``` is free for academic use. Please reference the following paper if using it in your research:
