@@ -37,7 +37,7 @@ Copyright (C) <2023>  \<Swarm Intelligence Lab\>
 
 Users can use, redistribute, and modify AutoOptLib under the terms of the GNU General Public version 3 or any later version. AutoOptLib is distributed in the hope that it will be useful, but without any warranty; without even the implied warranty of merchantability or fitness for a particular purpose.
 
-Users should reference the following papers if using AutoOptLib in your publication:
+Users should reference the following papers if using AutoOptLib in their publications:
 ```
 @article{zhao2022autoopt,
   title={AutoOpt: A General Framework for Automatically Designing Metaheuristic Optimization Algorithms with Diverse Structures},
