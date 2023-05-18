@@ -1,8 +1,25 @@
 function output = Embedding(Algs,Setting,Surrogate,mode)
-% Embed the designed algorithm into a compact representation by auto-encoder.
-% EmbedMap  : mapping of embedding
-% VectorAlgs: the vector representaion of algorithms
+% Embed the designed algorithm into a compact vector representation by 
+% auto-encoder.
 
+%----------------------------Copyright-------------------------------------
+% Copyright (C) <2023>  <Swarm Intelligence Lab>
+
+% AutoOptLib is a free software. You can use, redistribute, and/or modify
+% it under the terms of the GNU General Public License as published by the 
+% Free Software Foundation, either version 3 of the License, or any later 
+% version. 
+
+% Please reference the paper below if using AutoOptLib in your publication:
+% @article{zhao2023autooptlib,
+%  title={AutoOptLib: A Library of Automatically Designing Metaheuristic 
+%         Optimization Algorithms in Matlab},
+%  author={Zhao, Qi and Yan, Bai and Hu, Taiwei and Chen, Xianglong and 
+%          Yang, Jian and Shi, Yuhui},
+%  journal={arXiv preprint 	arXiv:2303.06536},
+%  year={2023}
+% }
+%--------------------------------------------------------------------------
 
 randSeed = Surrogate.randSeed;
 layer    = 2;   % number of auto-encoder layers
@@ -68,7 +85,7 @@ end
 switch mode
     case 'get' % get the embedding mapping by mSDA
         [EmbedMap,~] = mSDA(VectorAlgs,p,layer);
-        output = EmbedMap;
+        output = EmbedMap; 
     case 'use' % use the mapping to embed algorithms
         EmbedMap = Surrogate.embedding;
         temp     = [VectorAlgs;ones(1,length(Algs)*3)];
