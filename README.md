@@ -9,7 +9,7 @@ AutoOptLib is a MATLAB library for automatically designing metaheuristic optimiz
 
 *  **Rich library of design choices** - Over 40 representative metaheuristic components for designing algorithms for continuous, discrete, and permutation problems with/without constraints and uncertainties.
 *  **Flexibility to designing diverse algorithms** - Design algorithms with diverse structures in a single run, enables great possibility to find novel and efficient algorithms.
-*  **Fair benchmark of various design objectives and techniques** - Various design objectives, e.g., solution quality, runtime, and anytime performance. Different design techniques, e.g., racing, intensification, and surrogate.
+*  **Various design objectives and techniques** - Various design objectives, e.g., solution quality, runtime, and anytime performance. Different design techniques, e.g., racing, intensification, and surrogate.
 *  **Good accessibility** - GUI for users to input problems, manage the algorithm design process, make experimental comparisons, and visualize results with simple one-clicks. 
 *  **Easy extensibility** - Easily add new algorithmic components, objectives, and techniques by a uniform interface. 
 
