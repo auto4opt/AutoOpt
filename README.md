@@ -30,9 +30,7 @@ Follow the steps below to use AutoOptLib:
 
 4. Run AutoOptLib by command or GUI. 
 
-Refer to the Documentation [Web](https://AutoOpt.readthedocs.io/)/ [pdf](https://github.com/qz89/AutoOpt/blob/main/Documentation.pdf) for user guide.
-
-Refer to the [Paper](https://arxiv.org/abs/2303.06536) for AutoOptLib's key ideas and features.  
+Refer to the Documentation [Web](https://AutoOpt.readthedocs.io/) / [PDF](https://github.com/qz89/AutoOpt/blob/main/Documentation.pdf) for user guide.
 
 ## Copyright
 AutoOptLib is developed and maintained by the Swarm Intelligence laboratory at the Department of Computer Science and Engineering, Southern University of Science and Technology.
