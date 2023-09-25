@@ -42,8 +42,8 @@ Users can use, redistribute, and modify AutoOptLib under the terms of the GNU Ge
 Users should reference the following papers if using AutoOptLib in their publications:
 ```
 @article{zhao2023autooptlib,
-  title={AutoOptLib: A Matlab Library for Automatically Designing Metaheuristic Optimization Algorithms},
-  author={Zhao, Qi and Yan, Bai and Hu, Taiwei and Chen, Xianglong and Yang, Jian and Shi, Yuhui},
+  title={AutoOptLib: Tailoring Metaheuristic Optimizers via Automated Algorithm Design},
+  author={Zhao, Qi and Yan, Bai and Hu, Taiwei and Chen, Xianglong and Duan, Qiqi and Yang, Jian and Shi, Yuhui},
   journal={arXiv preprint arXiv:2303.06536},
   year={2023}
 }
