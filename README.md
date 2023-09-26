@@ -1,6 +1,5 @@
 ## AutoOptLib (Automated Design of Metaheuristic Optimization Algorithms)
 [![GNU General Public License v3.0](https://img.shields.io/badge/license-GNU%20GPL--v3.0-green.svg)](https://github.com/qz89/AutoOpt/blob/main/LICENSE)
-[!Documentation](https://autoopt.readthedocs.io/en/latest/index.html)
 ![](https://img.shields.io/badge/Matlab-%3E%3D%202018a%20-blue.svg)
 ![](https://img.shields.io/badge/Windows-Pass-brightgreen.svg)
 ![](https://img.shields.io/badge/MacOS-Pass-brightgreen.svg)
