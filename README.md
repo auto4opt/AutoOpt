@@ -51,4 +51,4 @@ AutoOptLib is developed and maintained by the Swarm Intelligence laboratory at t
 ## Contact
 Users may ask question in [Issues block](https://github.com/qz89/AutoOpt/issues) and upload contributions by [Pulling request](https://github.com/qz89/AutoOpt/pulls). 
 
-For any question, comment, or suggestion, please contact Dr. Qi Zhao, zhaoq@sustech.edu.cn.
+For any question, comment, or suggestion, please contact Dr. Qi Zhao, email: zhaoq@sustech.edu.cn.
