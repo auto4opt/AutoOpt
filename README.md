@@ -32,14 +32,13 @@ Follow the steps below to use AutoOptLib:
 
 Refer to the Documentation [Web](https://AutoOpt.readthedocs.io/) / [PDF](https://github.com/qz89/AutoOpt/blob/main/Documentation.pdf) for user guide.
 
-## Copyright
-AutoOptLib is developed and maintained by the Swarm Intelligence laboratory at the Department of Computer Science and Engineering, Southern University of Science and Technology.
+## Release Notes
+* Version 1.0 (28 Sep 2023)
 
-Copyright (C) <2023>  \<Swarm Intelligence laboratory\>
+## License
+Users can use, redistribute, and modify AutoOptLib under the terms of the GNU General Public version 3 or any later version.
 
-Users can use, redistribute, and modify AutoOptLib under the terms of the GNU General Public version 3 or any later version. AutoOptLib is distributed in the hope that it will be useful, but without any warranty; without even the implied warranty of merchantability or fitness for a particular purpose.
-
-Users should reference the following papers if using AutoOptLib in their publications:
+AutoOptLib is developed and maintained by the Swarm Intelligence laboratory at the Department of Computer Science and Engineering, Southern University of Science and Technology. Users should reference the following papers if using AutoOptLib in their publications:
 ```
 @article{zhao2023autooptlib,
   title={AutoOptLib: Tailoring Metaheuristic Optimizers via Automated Algorithm Design},
