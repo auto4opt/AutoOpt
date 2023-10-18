@@ -30,7 +30,7 @@ Follow the steps below to use AutoOptLib:
 
 4. Run AutoOptLib by command or GUI. 
 
-Refer to the Documentation [Web](https://AutoOpt.readthedocs.io/) / [PDF](https://github.com/qz89/AutoOpt/blob/main/Documentation.pdf) for user guide.
+Refer to the Documentation [Web](https://AutoOpt.readthedocs.io/) / [PDF]([https://github.com/qz89/AutoOpt/blob/main/Documentation.pdf](https://github.com/qz89/AutoOpt/blob/main/AutoOptLib%20for%20Matlab/Documentation.pdf)) for user guide.
 
 ## Release Notes
 * Version 1.0 (28 Sep 2023)
