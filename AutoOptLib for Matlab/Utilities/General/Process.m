@@ -18,12 +18,13 @@ switch Setting.Mode
     case 'design'
         tic;
         str = 'Initializing...';
+        disp(str);
         if nargin > 4
             app = varargin{end-1};
             app.TextArea.Value = str;
             drawnow;
-        else
-            bar = waitbar(0,str);
+        % else
+        %     bar = waitbar(0,str);
         end
         %% construct training problem properties
         Problem  = struct('name',[],'type',[],'bound',[],'setting',{''},'N',[],'Gmax',[]);
@@ -65,11 +66,12 @@ switch Setting.Mode
         AlgTrace = DESIGN; % for save best algorithms found at each iteration
         while G <= AlgGmax
             str = ['Designing... ',num2str(100*G/AlgGmax),'%'];
+            disp(str)
             if nargin > 4
                 app.TextArea.Value = str;
                 drawnow;
-            else
-                waitbar(G/AlgGmax,bar,str);
+            % else
+            %     waitbar(G/AlgGmax,bar,str);
             end
             improve = 1;
             innerG  = 1;
@@ -176,11 +178,12 @@ switch Setting.Mode
         
         %% test the designed algorithm(s)
         str = 'Testing... ';
+        disp(str)
         if nargin > 4
             app.TextArea.Value = str;
             drawnow;
-        else
-            waitbar(100,bar,str);
+        % else
+        %     waitbar(100,bar,str);
         end
         Setting.Evaluate = 'exact';
         for i = 1:length(Algs)
@@ -191,11 +194,12 @@ switch Setting.Mode
         output2 = AlgTrace; % best algorithms found at each iteration of design
 
         str = 'Complete';
+        disp(str)
         if nargin > 4
             app.TextArea.Value = str;
             drawnow;
-        else
-            waitbar(100,bar,str);
+        % else
+        %     waitbar(100,bar,str);
         end
         toc;
         

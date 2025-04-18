@@ -90,6 +90,9 @@ switch varargin{end}
         [N,D] = size(Decs);
         Decs  = Decs-repmat(o,N,1);
         Decs  = Decs*M;
+
+        disp(size(Decs))
+        disp(size(M))
         
         a = 1e+6;
         fit = 0;

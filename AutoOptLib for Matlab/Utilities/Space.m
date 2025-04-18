@@ -13,7 +13,8 @@ function Setting = Space(Problem,Setting)
 % operater space
 switch Problem(1).type{1}
     case 'continuous'
-        Choose  = {'choose_traverse';'choose_tournament';'choose_roulette_wheel';'choose_brainstorm';'choose_nich'}; 
+        % Choose  = {'choose_traverse';'choose_tournament';'choose_roulette_wheel';'choose_brainstorm';'choose_nich'};
+        Choose  = {'choose_traverse';'choose_tournament';'choose_roulette_wheel';'choose_nich'};
         Search  = {'search_pso';'search_de_current';'search_de_current_best';'search_de_random';
             'cross_arithmetic';'cross_sim_binary';'cross_point_one';'cross_point_two';
             'cross_point_n';'cross_point_uniform';'search_mu_gaussian';'search_mu_cauchy';

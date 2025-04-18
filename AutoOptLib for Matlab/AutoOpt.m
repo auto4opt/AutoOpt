@@ -103,11 +103,11 @@ else
             Setting.Archive  = '';
             Setting.IncRate  = 0.05;
             Setting.ProbN    = 20;
-            Setting.ProbFE   = 200;
-            Setting.InnerFE  = 100;
-            Setting.AlgN     = 200;
-            Setting.AlgFE    = 2000;
-            Setting.AlgRuns  = 1;
+            Setting.ProbFE   = 5000;
+            Setting.InnerFE  = 500;
+            Setting.AlgN     = 10;
+            Setting.AlgFE    = 5000;
+            Setting.AlgRuns  = 5;
             Setting.Metric   = 'quality'; % quality/runtimeFE/runtimeSec/auc
             Setting.Evaluate = 'exact';   % exact/approximate/intensification/racing
             Setting.Compare  = 'average'; % average/statistic
@@ -124,13 +124,13 @@ else
         case 'solve'
             Setting.Mode = 'solve';
             Setting.AlgFile  = '';
-            Setting.AlgName  = 'Continuous Genetic Algorithm';
+            Setting.AlgName  = '';
             Setting.Metric   = 'quality';
             Setting.Tmax     = [];
             Setting.Thres    = [];
-            Setting.ProbN    = 100;
+            Setting.ProbN    = 50;
             Setting.ProbFE   = 50000;
-            Setting.AlgRuns  = 31;
+            Setting.AlgRuns  = 5;
             Setting          = Input(varargin,Setting,'parameter');
             Setting          = Input(Setting,'check');
             [bestSolutions,allSolutions] = Process(prob,instanceSolve,Setting);
