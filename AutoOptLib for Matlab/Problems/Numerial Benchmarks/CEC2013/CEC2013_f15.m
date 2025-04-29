@@ -1,4 +1,21 @@
 function [output1,output2,output3] = CEC2013_f15(varargin)
+% The f15 Function from the benchmark for the CEC 2013 Special
+% Session on Real-Parameter Optimization.
+
+%------------------------------Reference-----------------------------------
+% Liang J J, Qu B Y, Suganthan P N, et al. Problem definitions and 
+% evaluation criteria for the CEC 2013 special session on real-parameter 
+% optimization[R]. Computational Intelligence Laboratory, Zhengzhou 
+% University, Zhengzhou, China and Nanyang Technological University, 
+% Singapore, Technical Report, 2013, 201212(34): 281-295.
+%------------------------------Copyright-----------------------------------
+% Copyright (C) <2025>  <Swarm Intelligence Lab>
+
+% AutoOptLib is a free software. You can use, redistribute, and/or modify
+% it under the terms of the GNU General Public License as published by the 
+% Free Software Foundation, either version 3 of the License, or any later 
+% version. 
+%--------------------------------------------------------------------------
 
 switch varargin{end}
     case 'construct'
@@ -57,32 +74,27 @@ switch varargin{end}
         Decs = 10 * Decs;               % 10(x-o)
         Decs = Decs*M1;
         Decs = Decs*constructLambda(10, D);
-        z = Decs + 4.209687462275036e+002; % 加上常数偏移
+        z = Decs + 4.209687462275036e+002; 
         
-        % 计算g(z_i)
         g_sum = zeros(N,1);
         for i = 1:D
             zi = z(:,i);
             abs_zi = abs(zi);
             
-            % 条件分支计算g(zi)
             cond1 = (abs_zi <= 500);
             cond2 = (zi > 500);
             cond3 = (zi < -500);
             
             g_val = zeros(N,1);
             
-            % 条件1: |z_i| <= 500
             g_val(cond1) = zi(cond1).*sin(abs_zi(cond1).^(1/2));
             
-            % 条件2: z_i > 500
             if any(cond2)
                 z_mod = mod(zi(cond2), 500);  % mod(z_i,500)
                 temp = 500 - z_mod;           
                 g_val(cond2) = temp .* sin(sqrt(abs(temp))) + ((zi(cond2)-500).^2)/(10000*D);
             end
             
-            % 条件3: z_i < -500
             if any(cond3)
                 z_abs_mod = mod(abs_zi(cond3), 500); 
                 temp = z_abs_mod - 500;

@@ -1,7 +1,7 @@
 # Interface of AutoOptLib with Python problem files
 
 #----------------------------Copyright-------------------------------------
-# Copyright (C) <2023>  <Swarm Intelligence Lab>
+# Copyright (C) <2025>  <Swarm Intelligence Lab>
 
 # AutoOptLib is a free software. You can use, redistribute, and/or modify
 # it under the terms of the GNU General Public License as published by the 

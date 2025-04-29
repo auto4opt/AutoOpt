@@ -1,4 +1,21 @@
 function [output1,output2,output3] = CEC2013_f13(varargin)
+% The f13 Function from the benchmark for the CEC 2013 Special
+% Session on Real-Parameter Optimization.
+
+%------------------------------Reference-----------------------------------
+% Liang J J, Qu B Y, Suganthan P N, et al. Problem definitions and 
+% evaluation criteria for the CEC 2013 special session on real-parameter 
+% optimization[R]. Computational Intelligence Laboratory, Zhengzhou 
+% University, Zhengzhou, China and Nanyang Technological University, 
+% Singapore, Technical Report, 2013, 201212(34): 281-295.
+%------------------------------Copyright-----------------------------------
+% Copyright (C) <2025>  <Swarm Intelligence Lab>
+
+% AutoOptLib is a free software. You can use, redistribute, and/or modify
+% it under the terms of the GNU General Public License as published by the 
+% Free Software Foundation, either version 3 of the License, or any later 
+% version. 
+%--------------------------------------------------------------------------
 
 switch varargin{end}
     case 'construct'
@@ -52,38 +69,29 @@ switch varargin{end}
         Decs = varargin{2};
         
         [N,D] = size(Decs);
-        % 1. 移位并缩放到[-5.12,5.12]
         Decs = Decs - repmat(o, N, 1);     % x - o
         Decs = (5.12/100)*Decs;            % 5.12*(x-o)/100
-        Decs = Decs * M1;                  % 得到 x̄
+        Decs = Decs * M1;                  % x̄
         
-        % 2. 非连续处理 y_i
-        % 若 |x̄_i| > 0.5 则 y_i = round(2*x̄_i)/2，否则 y_i = x̄_i
+
         for i = 1:D
             mask = abs(Decs(:,i)) > 0.5;
             Decs(mask,i) = round(2*Decs(mask,i))/2; 
         end
-        % 此时 Decs即为 y
         
-        % 3. T_osz 变换
         Decs = computeTosz(Decs);
         
-        % 4. T_asy^{0.2} 变换
         Decs = computeTAsym(Decs, 0.2);
         
-        % 5. 旋转：M2、Lambda^{10}、M1
         Decs = Decs * M2;
         Decs = Decs * constructLambda(10, D);
         z    = Decs * M1;
         
-        % 6. 计算 Rastrigin 基本形式的值并加上偏移
         fit = 0;
         for i = 1:D
             fit = fit + (z(:,i).^2 - 10.*cos(2.*pi.*z(:,i)) + 10);
         end
-        
-        % 根据题中设定对 fit 进行整体偏移
-        % 这里示例使用 fit - 200，实际请根据题中给定的 f_{13}^* 调整
+
         output1 = fit - 200;
 end
 

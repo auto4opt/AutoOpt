@@ -1,4 +1,21 @@
 function [output1,output2,output3] = CEC2013_f9(varargin)
+% The f9 Function from the benchmark for the CEC 2013 Special
+% Session on Real-Parameter Optimization.
+
+%------------------------------Reference-----------------------------------
+% Liang J J, Qu B Y, Suganthan P N, et al. Problem definitions and 
+% evaluation criteria for the CEC 2013 special session on real-parameter 
+% optimization[R]. Computational Intelligence Laboratory, Zhengzhou 
+% University, Zhengzhou, China and Nanyang Technological University, 
+% Singapore, Technical Report, 2013, 201212(34): 281-295.
+%------------------------------Copyright-----------------------------------
+% Copyright (C) <2025>  <Swarm Intelligence Lab>
+
+% AutoOptLib is a free software. You can use, redistribute, and/or modify
+% it under the terms of the GNU General Public License as published by the 
+% Free Software Foundation, either version 3 of the License, or any later 
+% version. 
+%--------------------------------------------------------------------------
 
 switch varargin{end}
     case 'construct'
@@ -68,7 +85,7 @@ switch varargin{end}
         term1 = 0;
         term2 = 0;
         for i = 1:D
-            inner_sum = 0;  % 对第 i 维度的内部 k 循环累加
+            inner_sum = 0; 
             for k = 0:kmax
                 z = Decs(:,i);
                 inner_sum = inner_sum + a^k * cos(2 * pi * b^k * (z + 0.5));

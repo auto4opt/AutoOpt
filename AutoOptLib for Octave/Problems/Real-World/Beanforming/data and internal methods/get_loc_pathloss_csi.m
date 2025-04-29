@@ -2,8 +2,8 @@ function  [G, Hd, Hr, omega] = get_loc_pathloss_csi(K, Nt, NR2)
 %% generate new location for the K users
 Pt=zeros(K,2);
 %%
-Lroom=100; %д╛хо200
-Wroom=30; %д╛хо30
+Lroom=100; 
+Wroom=30; 
 k1=[1,0];
 k2=[0,1];
 R=10;

@@ -7,7 +7,7 @@ function [output1,output2,output3] = CEC2005_f9(varargin)
 % evaluation criteria for the CEC 2005 special session on real-parameter 
 % optimization[R]. KanGAL report, 2005.
 %------------------------------Copyright-----------------------------------
-% Copyright (C) <2023>  <Swarm Intelligence Lab>
+% Copyright (C) <2025>  <Swarm Intelligence Lab>
 
 % AutoOptLib is a free software. You can use, redistribute, and/or modify
 % it under the terms of the GNU General Public License as published by the 

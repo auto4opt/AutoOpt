@@ -4,7 +4,7 @@ function [output1,output2] = search_mu_cauchy(varargin)
 % Yao X, Liu Y, Lin G. Evolutionary programming made faster[J]. IEEE 
 % Transactions on Evolutionary computation, 1999, 3(2): 82-102.
 %------------------------------Copyright-----------------------------------
-% Copyright (C) <2023>  <Swarm Intelligence Lab>
+% Copyright (C) <2025>  <Swarm Intelligence Lab>
 
 % AutoOptLib is a free software. You can use, redistribute, and/or modify
 % it under the terms of the GNU General Public License as published by the 

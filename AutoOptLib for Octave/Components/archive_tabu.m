@@ -5,7 +5,7 @@ function [output1,output2] = archive_tabu(varargin)
 % Glover F. Tabu search—part I[J]. ORSA Journal on computing, 1989, 1(3): 
 % 190-206.
 %------------------------------Copyright-----------------------------------
-% Copyright (C) <2023>  <Swarm Intelligence Lab>
+% Copyright (C) <2025>  <Swarm Intelligence Lab>
 
 % AutoOptLib is a free software. You can use, redistribute, and/or modify
 % it under the terms of the GNU General Public License as published by the 

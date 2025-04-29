@@ -2,7 +2,7 @@ function Setting = Space(Problem,Setting)
 % Define the design space.
 
 %----------------------------Copyright-------------------------------------
-% Copyright (C) <2023>  <Swarm Intelligence Lab>
+% Copyright (C) <2025>  <Swarm Intelligence Lab>
 
 % AutoOptLib is a free software. You can use, redistribute, and/or modify
 % it under the terms of the GNU General Public License as published by the 
@@ -15,11 +15,11 @@ switch Problem(1).type{1}
     case 'continuous'
         % Choose  = {'choose_traverse';'choose_tournament';'choose_roulette_wheel';'choose_brainstorm';'choose_nich'};
         Choose  = {'choose_traverse';'choose_tournament';'choose_roulette_wheel';'choose_nich'};
-        Search  = {'search_pso';'search_de_current';'search_de_current_best';'search_de_random';
+        Search  = {'search_de_current';'search_de_current_best';'search_de_random';
             'cross_arithmetic';'cross_sim_binary';'cross_point_one';'cross_point_two';
             'cross_point_n';'cross_point_uniform';'search_mu_gaussian';'search_mu_cauchy';
             'search_mu_polynomial';'search_mu_uniform';'search_eda';'search_cma';
-            'reinit_continuous'};
+            'reinit_continuous'}; % 'search_pso'
         Update  = {'update_greedy';'update_round_robin';'update_pairwise';'update_always';'update_simulated_annealing'};
        
     case 'discrete'

@@ -1,13 +1,13 @@
 function AutoOpt(varargin)
 % --------------------------Introduction-----------------------------------
-% AutoOptLib is a MATLAB/Octave library for automatically designing metaheuristic
-% optimization algorithms. 
-% Current version: v1.0, released at Sep. 2023
+% AutoOptLib is a MATLAB/Octave library for automatically designing 
+% metaheuristic optimization algorithms. 
+% Current version: v1.0, released at April 2025
 
 % AutoOptLib is developed and actively maintained by the Swarm Intelligence
 % Lab at the Department of Computer Science and Engineering, Southern 
 % University of Science and Technology.
-% Copyright (C) <2023>  <Swarm Intelligence Lab>
+% Copyright (C) <2025>  <Swarm Intelligence Lab>
 
 % AutoOptLib is a free software. You can use, redistribute, and/or modify
 % it under the terms of the GNU General Public License as published by the 

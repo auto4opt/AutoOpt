@@ -5,7 +5,7 @@ function [output1,output2] = cross_sim_binary(varargin)
 % Deb K, Agrawal R B. Simulated binary crossover for continuous search 
 % space[J]. Complex systems, 1995, 9(2): 115-148.
 %------------------------------Copyright-----------------------------------
-% Copyright (C) <2023>  <Swarm Intelligence Lab>
+% Copyright (C) <2025>  <Swarm Intelligence Lab>
 
 % AutoOptLib is a free software. You can use, redistribute, and/or modify
 % it under the terms of the GNU General Public License as published by the 
