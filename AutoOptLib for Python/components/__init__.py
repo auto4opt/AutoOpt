@@ -1,0 +1,30 @@
+"""AutoOpt component library (Python port)."""
+
+from __future__ import annotations
+
+from importlib import import_module
+from typing import Callable, Dict
+
+_COMPONENT_MODULES = {
+    "choose_traverse": "choose_traverse",
+    "choose_tournament": "choose_tournament",
+    "choose_roulette_wheel": "choose_roulette_wheel",
+    "choose_nich": "choose_nich",
+    "update_always": "update_always",
+}
+
+_cache: Dict[str, Callable] = {}
+
+
+def get_component(name: str) -> Callable:
+    if name not in _cache:
+        module_name = _COMPONENT_MODULES.get(name)
+        if module_name is None:
+            raise KeyError(f"Component {name!r} not registered")
+        module = import_module(f".{module_name}", package=__name__)
+        _cache[name] = getattr(module, name)
+    return _cache[name]
+
+
+__all__ = sorted(_COMPONENT_MODULES)
+
