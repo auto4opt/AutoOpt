@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import math
 import re
-from typing import Any, Iterable, Sequence
+from typing import Any, Sequence
 
 import numpy as np
 
@@ -61,6 +61,33 @@ def ensure_rng(*candidates: Any) -> np.random.Generator:
 
 def to_numpy(data: Any) -> np.ndarray:
     return np.asarray(data)
+
+
+def extract_fits(solution: Any) -> np.ndarray:
+    fits = flex_get(solution, "fits")
+    if fits is not None:
+        return np.asarray(fits, dtype=float).reshape(-1)
+    if isinstance(solution, Sequence):
+        values = []
+        for item in solution:
+            val = flex_get(item, "fit")
+            if val is None:
+                val = flex_get(item, "fitness")
+            if val is None:
+                val = flex_get(item, "fits")
+            if val is None:
+                raise ValueError("Each solution must expose fit/fitness value")
+            values.append(float(np.asarray(val).reshape(1)))
+        return np.asarray(values, dtype=float)
+    raise ValueError("Solution must provide fitness information")
+
+
+def solution_as_list(solution: Any) -> list[Any]:
+    if isinstance(solution, list):
+        return solution
+    if isinstance(solution, Sequence):
+        return list(solution)
+    raise TypeError("Solution collection must be indexable")
 
 
 def pairwise_distances(a: np.ndarray) -> np.ndarray:

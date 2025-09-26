@@ -4,15 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from ._utils import ensure_rng, flex_get
-
-
-def _extract_fitness(solution) -> np.ndarray:
-    fitness = flex_get(solution, "fits")
-    if fitness is None:
-        raise ValueError("Solution object must provide fitness values")
-    arr = np.asarray(fitness, dtype=float)
-    return arr.reshape(-1)
+from ._utils import ensure_rng, extract_fits, flex_get
 
 
 def choose_roulette_wheel(*args):
@@ -23,7 +15,9 @@ def choose_roulette_wheel(*args):
         aux = args[3] if len(args) > 3 else None
         rng = ensure_rng(aux)
 
-        fitness = _extract_fitness(solution)
+        fitness = extract_fits(solution)
+        if fitness.size == 0:
+            return np.array([], dtype=int), None
         n = int(flex_get(problem, "N", fitness.shape[0]))
 
         fitness = fitness - min(fitness.min(), 0) + 1e-6

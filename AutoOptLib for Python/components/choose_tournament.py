@@ -4,14 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from ._utils import flex_get, ensure_rng
-
-
-def _extract_fitness(solution) -> np.ndarray:
-    fitness = flex_get(solution, "fits")
-    if fitness is None:
-        raise ValueError("Solution object must provide fitness values")
-    return np.asarray(fitness).reshape(-1)
+from ._utils import ensure_rng, extract_fits, flex_get
 
 
 def choose_tournament(*args):
@@ -22,8 +15,11 @@ def choose_tournament(*args):
         aux = args[3] if len(args) > 3 else None
         rng = ensure_rng(aux)
 
-        fitness = _extract_fitness(solution)
+        fitness = extract_fits(solution)
         pop_size = fitness.shape[0]
+        if pop_size == 0:
+            return np.array([], dtype=int), None
+
         k = 2
         n = int(flex_get(problem, "N", pop_size))
 

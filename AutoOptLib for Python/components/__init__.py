@@ -11,6 +11,10 @@ _COMPONENT_MODULES = {
     "choose_roulette_wheel": "choose_roulette_wheel",
     "choose_nich": "choose_nich",
     "update_always": "update_always",
+    "update_greedy": "update_greedy",
+    "update_round_robin": "update_round_robin",
+    "update_pairwise": "update_pairwise",
+    "update_simulated_annealing": "update_simulated_annealing",
 }
 
 _cache: Dict[str, Callable] = {}
@@ -27,4 +31,3 @@ def get_component(name: str) -> Callable:
 
 
 __all__ = sorted(_COMPONENT_MODULES)
-
