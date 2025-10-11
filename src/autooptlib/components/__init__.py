@@ -6,15 +6,28 @@ from importlib import import_module
 from typing import Callable, Dict
 
 _COMPONENT_MODULES = {
-    "choose_traverse": "choose_traverse",
-    "choose_tournament": "choose_tournament",
-    "choose_roulette_wheel": "choose_roulette_wheel",
-    "choose_nich": "choose_nich",
-    "update_always": "update_always",
-    "update_greedy": "update_greedy",
-    "update_round_robin": "update_round_robin",
-    "update_pairwise": "update_pairwise",
-    "update_simulated_annealing": "update_simulated_annealing",
+"choose_traverse": "choose_traverse",
+"choose_tournament": "choose_tournament",
+"choose_roulette_wheel": "choose_roulette_wheel",
+"choose_nich": "choose_nich",
+"update_always": "update_always",
+"update_greedy": "update_greedy",
+"update_round_robin": "update_round_robin",
+"update_pairwise": "update_pairwise",
+"update_simulated_annealing": "update_simulated_annealing",
+"cross_point_one": "cross_point_one",
+"cross_point_two": "cross_point_two",
+"cross_point_uniform": "cross_point_uniform",
+"cross_point_n": "cross_point_n",
+"search_de_current": "search_de_current",
+"search_de_current_best": "search_de_current_best",
+"search_de_random": "search_de_random",
+"search_mu_gaussian": "search_mu_gaussian",
+"search_mu_cauchy": "search_mu_cauchy",
+"search_mu_uniform": "search_mu_uniform",
+"search_mu_polynomial": "search_mu_polynomial",
+"reinit_continuous": "reinit_continuous",
+"archive_best": "archive_best"
 }
 
 _cache: Dict[str, Callable] = {}
@@ -31,6 +44,3 @@ def get_component(name: str) -> Callable:
 
 
 __all__ = sorted(_COMPONENT_MODULES)
-
-
-
