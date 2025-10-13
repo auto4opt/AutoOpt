@@ -32,6 +32,7 @@ def evaluate(self, problem: Any, data: Any, setting: Any, seed_instance: Sequenc
     path_params: PathwayParam = self.parameter_pheno[0][0]
 
     solutions = _init_population(problem, data, setting)
+    aux_cache: List[Any] = [None] * len(pathway.search)
     archive_names = list(get_flex(setting, "archive", []))
     archives: List[Any] = [[] for _ in archive_names]
 
@@ -72,12 +73,13 @@ def evaluate(self, problem: Any, data: Any, setting: Any, seed_instance: Sequenc
 
                 parent_subset = SolutionSet([solutions[i] for i in ind]) if ind.size else solutions
                 primary_fn = get_component(step.primary)
-                new_dec, aux = primary_fn(parent_subset, problem, primary_param, None, G, innerG, data, "execute")
+                aux_state = aux_cache[step_idx] or {}
+                new_dec, aux_state = primary_fn(parent_subset, problem, primary_param, aux_state, G, innerG, data, "execute")
 
                 if step.secondary:
                     new_dec = repair_sol(np.asarray(new_dec), problem)
                     secondary_fn = get_component(step.secondary)
-                    new_dec, aux = secondary_fn(new_dec, problem, secondary_param, aux, G, innerG, data, "execute")
+                    new_dec, aux_state = secondary_fn(new_dec, problem, secondary_param, aux_state, G, innerG, data, "execute")
 
                 new = make_solutions(np.asarray(new_dec), problem, data)
 
@@ -90,7 +92,11 @@ def evaluate(self, problem: Any, data: Any, setting: Any, seed_instance: Sequenc
                         archive_fn = get_component(name)
                         archives[j], _ = archive_fn(solutions, archives[j], problem, "execute")
 
+                if step.primary == "search_cma":
+                    aux_state = get_component("para_cma")(new, problem, aux_state, "solution")
+
                 improve = improve_rate(solutions, improve, innerG, "solution")
+                aux_cache[step_idx] = aux_state
                 innerG += 1
                 G += 1
                 if metric == "runtimeFE":

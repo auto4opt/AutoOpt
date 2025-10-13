@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
-from typing import Any, Iterable, Sequence
+from typing import Any
 
 import numpy as np
 
@@ -35,6 +35,7 @@ def space(problem: Any, setting: Any) -> SimpleNamespace:
             "search_de_current",
             "search_de_current_best",
             "search_de_random",
+            "search_cma",
             "cross_point_one",
             "cross_point_two",
             "cross_point_uniform",
@@ -87,7 +88,20 @@ def space(problem: Any, setting: Any) -> SimpleNamespace:
         except TypeError:
             behavior = None
 
-        para_space.append(None if params is None else np.asarray(params, dtype=float))
+        if params is None:
+            para_space.append(None)
+        else:
+            arr = np.asarray(params, dtype=float)
+            if arr.ndim == 1:
+                if arr.size % 2 != 0:
+                    raise ValueError(f"Parameter bounds for {name} must contain pairs")
+                arr = arr.reshape(-1, 2)
+            elif arr.ndim > 1 and arr.shape[1] != 2:
+                total = arr.size
+                if total % 2 != 0:
+                    raise ValueError(f"Parameter bounds for {name} must contain pairs")
+                arr = arr.reshape(-1, 2)
+            para_space.append(arr)
         behav_space.append(behavior)
         para_local_space.append(None)
 
