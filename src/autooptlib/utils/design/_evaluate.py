@@ -94,6 +94,8 @@ def evaluate(self, problem: Any, data: Any, setting: Any, seed_instance: Sequenc
 
                 if step.primary == "search_cma":
                     aux_state = get_component("para_cma")(new, problem, aux_state, "solution")
+                elif step.primary == "search_pso":
+                    aux_state = get_component("para_pso")(new, problem, aux_state)
 
                 improve = improve_rate(solutions, improve, innerG, "solution")
                 aux_cache[step_idx] = aux_state

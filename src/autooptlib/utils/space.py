@@ -25,17 +25,13 @@ def space(problem: Any, setting: Any) -> SimpleNamespace:
     ptype = get_problem_type(problem)
 
     if ptype == "continuous":
-        choose = [
-            "choose_traverse",
-            "choose_tournament",
-            "choose_roulette_wheel",
-            "choose_nich",
-        ]
+        choose = ["choose_traverse", "choose_tournament", "choose_roulette_wheel", "choose_nich"]
         search = [
             "search_de_current",
             "search_de_current_best",
             "search_de_random",
             "search_cma",
+            "search_pso",
             "cross_point_one",
             "cross_point_two",
             "cross_point_uniform",
@@ -46,15 +42,34 @@ def space(problem: Any, setting: Any) -> SimpleNamespace:
             "search_mu_uniform",
             "reinit_continuous",
         ]
-        update = [
-            "update_greedy",
-            "update_round_robin",
-            "update_pairwise",
-            "update_always",
-            "update_simulated_annealing",
+        update = ["update_greedy", "update_round_robin", "update_pairwise", "update_always", "update_simulated_annealing"]
+    elif ptype == "discrete":
+        choose = ["choose_traverse", "choose_tournament", "choose_roulette_wheel", "choose_nich"]
+        search = [
+            "cross_point_one",
+            "cross_point_two",
+            "cross_point_uniform",
+            "cross_point_n",
+            "search_reset_one",
+            "search_reset_rand",
+            "search_reset_creep",
+            "reinit_discrete",
         ]
+        update = ["update_greedy", "update_round_robin", "update_pairwise", "update_always", "update_simulated_annealing"]
+    elif ptype == "permutation":
+        choose = ["choose_traverse", "choose_tournament", "choose_roulette_wheel", "choose_nich"]
+        search = [
+            "cross_order_two",
+            "cross_order_n",
+            "search_swap",
+            "search_swap_multi",
+            "search_scramble",
+            "search_insert",
+            "reinit_permutation",
+        ]
+        update = ["update_greedy", "update_round_robin", "update_pairwise", "update_always", "update_simulated_annealing"]
     else:
-        raise NotImplementedError("space() currently supports continuous problems only")
+        raise NotImplementedError("space() currently supports continuous, discrete, and permutation problems")
 
     all_op = choose + search + update
     op_space = np.array(
