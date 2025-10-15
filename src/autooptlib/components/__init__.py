@@ -41,6 +41,8 @@ _COMPONENT_MODULES = {
     "cross_order_two": "cross_order_two",
     "cross_order_n": "cross_order_n",
     "archive_best": "archive_best",
+    "archive_diversity": "archive_diversity",
+    "archive_statistic": "archive_statistic",
     "para_cma": "para_cma",
     "para_pso": "para_pso",
 }
@@ -57,3 +59,4 @@ def get_component(name: str) -> Callable:
     return _cache[name]
 
 __all__ = sorted(_COMPONENT_MODULES)
+
