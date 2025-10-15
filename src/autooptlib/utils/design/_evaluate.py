@@ -34,7 +34,12 @@ def evaluate(self, problem: Any, data: Any, setting: Any, seed_instance: Sequenc
     solutions = _init_population(problem, data, setting)
     aux_cache: List[Any] = [None] * len(pathway.search)
     archive_names = list(get_flex(setting, "archive", []))
-    archives: List[Any] = [[] for _ in archive_names]
+    archives: List[Any] = []
+    for name in archive_names:
+        if name == "archive_statistic":
+            archives.append(np.empty((0, 2)))
+        else:
+            archives.append([])
 
     metric = get_flex(setting, "metric", "quality")
     prob_n = float(get_flex(setting, "prob_n", 1.0))
@@ -88,8 +93,14 @@ def evaluate(self, problem: Any, data: Any, setting: Any, seed_instance: Sequenc
                 solutions = SolutionSet(updated)
 
                 for j, name in enumerate(archive_names):
+                    archive_fn = get_component(name)
                     if name == "archive_best":
-                        archive_fn = get_component(name)
+                        archives[j], _ = archive_fn(solutions, archives[j], "execute")
+                    elif name == "archive_diversity":
+                        archives[j], _ = archive_fn(solutions, archives[j], problem, "execute")
+                    elif name == "archive_statistic":
+                        archives[j], _ = archive_fn(solutions, archives[j], "execute")
+                    else:
                         archives[j], _ = archive_fn(solutions, archives[j], problem, "execute")
 
                 if step.primary == "search_cma":

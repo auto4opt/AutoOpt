@@ -118,4 +118,30 @@ class Design:
         self.operator_pheno = operator
         self.parameter_pheno = parameter
 
+    def ave_perform_all(self):
+        """平均实际性能（所有实例×重复）。"""
+        if self.performance.size == 0:
+            return np.array([])
+        return np.mean(self.performance, axis=1)
+
+    def ave_perform_approx_all(self):
+        """平均近似性能（所有实例×重复）。"""
+        if self.performance_approx.size == 0:
+            return np.array([])
+        return np.mean(self.performance_approx, axis=1)
+
+    def ave_perform_per(self, ind):
+        """指定实例索引的平均实际性能。"""
+        if self.performance.size == 0:
+            return np.array([])
+        indices = np.atleast_1d(ind)
+        return np.mean(self.performance[indices, :], axis=1)
+
+    def ave_perform_approx_per(self, ind):
+        """指定实例索引的平均近似性能。"""
+        if self.performance_approx.size == 0:
+            return np.array([])
+        indices = np.atleast_1d(ind)
+        return np.mean(self.performance_approx[indices, :], axis=1)
+
     # ... 此处可以继续添加 avePerformAll 等其他简短的方法 ...
