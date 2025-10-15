@@ -7,20 +7,39 @@ import numpy as np
 from ...components import get_component
 from ..general.improve_rate import improve_rate
 from ..solve import SolutionSet, make_solutions, repair_sol
-from ._helpers import Pathway, PathwayParam, get_flex
+from ._helpers import Pathway, PathwayParam, get_flex, get_problem_type
 
 
 def _init_population(problem: Any, data: Any, setting: Any) -> SolutionSet:
-    ptype = get_flex(problem, "type", ["continuous"])
+    ptype = get_problem_type(problem) or "continuous"
     pop_n = int(get_flex(problem, "N", 10))
-    if isinstance(ptype, (list, tuple)):
-        ptype = ptype[0]
-    if ptype != "continuous":
-        raise NotImplementedError("Only continuous problems supported in minimal evaluate()")
-    bound = get_flex(problem, "bound")
-    lower = np.asarray(bound[0], dtype=float)
-    upper = np.asarray(bound[1], dtype=float)
-    decs = lower + (upper - lower) * np.random.rand(pop_n, lower.shape[-1])
+    if ptype == "continuous":
+        bound = get_flex(problem, "bound")
+        lower = np.asarray(bound[0], dtype=float)
+        upper = np.asarray(bound[1], dtype=float)
+        decs = lower + (upper - lower) * np.random.rand(pop_n, lower.shape[-1])
+    elif ptype == "discrete":
+        bound = np.asarray(get_flex(problem, "bound"), dtype=int)
+        lower = bound[0]
+        upper = bound[1]
+        decs = np.vstack(
+            [
+                np.random.randint(lower[j], upper[j] + 1, size=pop_n)
+                for j in range(lower.shape[-1])
+            ]
+        ).T
+    elif ptype == "permutation":
+        bound = np.asarray(get_flex(problem, "bound"), dtype=int)
+        if bound.ndim == 2 and bound.shape[1] > 0:
+            d = bound.shape[1]
+        else:
+            d = int(get_flex(problem, "dimension", 0) or get_flex(problem, "D", 0))
+            if d == 0:
+                raise ValueError("Permutation problem requires explicit dimension/bound")
+        base = np.arange(1, d + 1)
+        decs = np.vstack([np.random.permutation(base) for _ in range(pop_n)])
+    else:
+        raise NotImplementedError("Unsupported problem type for evaluate() population init")
     return make_solutions(decs, problem, data)
 
 

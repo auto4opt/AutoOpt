@@ -5,6 +5,8 @@ from typing import Any, Iterable, List, Sequence
 
 import numpy as np
 
+from ..design._helpers import get_problem_type, get_flex
+
 
 @dataclass
 class Solution:
@@ -41,12 +43,61 @@ class SolutionSet(Sequence[Solution]):
 
 
 def repair_sol(dec: np.ndarray, problem: Any) -> np.ndarray:
-    bound = getattr(problem, 'bound', None)
+    ptype = get_problem_type(problem)
+    bound = getattr(problem, "bound", None)
     if bound is None:
         return dec
-    lower = np.asarray(bound[0], dtype=float)
-    upper = np.asarray(bound[1], dtype=float)
-    return np.minimum(np.maximum(dec, lower), upper)
+    bound = np.asarray(bound)
+    if ptype == "continuous":
+        lower = bound[0]
+        upper = bound[1]
+        return np.minimum(np.maximum(dec, lower), upper)
+    if ptype == "discrete":
+        lower = bound[0]
+        upper = bound[1]
+        repaired = np.clip(np.rint(dec), lower, upper).astype(int)
+        setting = get_flex(problem, "setting", "")
+        if isinstance(setting, str) and "dec_diff" in setting:
+            n, d = repaired.shape
+            for i in range(n):
+                seen = set()
+                duplicates = []
+                for j, val in enumerate(repaired[i]):
+                    if val in seen:
+                        duplicates.append(j)
+                    else:
+                        seen.add(val)
+                if not duplicates:
+                    continue
+                for idx in duplicates:
+                    choices = [v for v in range(int(lower[idx]), int(upper[idx]) + 1) if v not in repaired[i]]
+                    if choices:
+                        repaired[i, idx] = int(np.random.choice(choices))
+            return repaired
+        return repaired
+    if ptype == "permutation":
+        repaired = np.rint(dec).astype(int)
+        if repaired.ndim == 1:
+            rows = [repaired.copy()]
+        else:
+            rows = [row.copy() for row in repaired]
+        d = len(rows[0])
+        domain = list(range(1, d + 1))
+        for row in rows:
+            missing = [v for v in domain if v not in row]
+            counts = {}
+            duplicates = []
+            for j, val in enumerate(row):
+                counts[val] = counts.get(val, 0) + 1
+                if counts[val] > 1:
+                    duplicates.append(j)
+            for j in duplicates:
+                if missing:
+                    row[j] = missing.pop(0)
+        if repaired.ndim == 1:
+            return rows[0]
+        return np.vstack(rows)
+    return dec
 
 
 def _call_evaluator(problem: Any, data: Any, dec: np.ndarray):
@@ -78,7 +129,7 @@ def _call_evaluator(problem: Any, data: Any, dec: np.ndarray):
 def make_solutions(decs: np.ndarray, problem: Any, data: Any) -> SolutionSet:
     items: List[Solution] = []
     for i in range(decs.shape[0]):
-        d = decs[i]
+        d = np.array(decs[i], dtype=float)
         d = repair_sol(d, problem)
         obj, con, _ = _call_evaluator(problem, data, d)
         feasible = con <= 0.0
