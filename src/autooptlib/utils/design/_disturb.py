@@ -20,7 +20,6 @@ def _ensure_alg_list(algs: Any) -> List[Any]:
     return [algs]
 
 
-
 def _copy_parameter_structure(parameter: Sequence[Any]) -> List[List[Any]]:
     copied: List[List[Any]] = []
     for entry in parameter:
@@ -32,6 +31,74 @@ def _copy_parameter_structure(parameter: Sequence[Any]) -> List[List[Any]]:
         values_copy = None if values is None else np.array(values, copy=True)
         copied.append([values_copy, behavior])
     return copied
+
+
+def _gather_operator_positions(paths: List[np.ndarray]) -> Tuple[List[Tuple[str, int, int]], List[int]]:
+    positions: List[Tuple[str, int, int]] = []
+    values: List[int] = []
+    for path_idx, path in enumerate(paths):
+        if path.size == 0:
+            continue
+        positions.append(("choose", path_idx, 0))
+        values.append(_as_int(path[0, 0]))
+        for row in range(1, path.shape[0]):
+            positions.append(("search", path_idx, row))
+            values.append(_as_int(path[row, 0]))
+        positions.append(("update", path_idx, path.shape[0] - 1))
+        values.append(_as_int(path[-1, -1]))
+    return positions, values
+
+
+def _disturb_search_single(path: np.ndarray, row_idx: int, rng: np.random.Generator, op_space: np.ndarray, alg_q: int) -> np.ndarray:
+    pool = np.arange(op_space[1, 0], op_space[1, 1] + 1)
+    current = _as_int(path[row_idx, 0])
+    pool = pool[pool != current]
+    num_search = path.shape[0] - 1
+    if pool.size == 0:
+        ind_new = current
+    else:
+        ind_new = _as_int(rng.choice(pool))
+    if num_search == 1 and num_search < alg_q:
+        sample_pool = list(pool) + [np.inf]
+    elif num_search > 1 and num_search < alg_q:
+        sample_pool = list(pool) + [np.inf, -np.inf]
+    elif num_search > 1 and num_search == alg_q:
+        sample_pool = list(pool) + [-np.inf]
+    else:
+        sample_pool = list(pool)
+    sample_choice = rng.choice(sample_pool) if sample_pool else ind_new
+    if sample_choice == np.inf:
+        insert_row = np.zeros((1, 2), dtype=int)
+        insert_row[0, 0] = ind_new
+        insert_row[0, 1] = path[row_idx, 1]
+        path = np.insert(path, row_idx + 1, insert_row, axis=0)
+        path[row_idx, 1] = ind_new
+    elif sample_choice == -np.inf and path.shape[0] > 2:
+        path[row_idx - 1, 1] = path[row_idx, 1]
+        path = np.delete(path, row_idx, axis=0)
+    else:
+        path[row_idx, 0] = ind_new
+        path[row_idx - 1, 1] = ind_new
+    return path
+
+
+def _disturb_search_multi(path: np.ndarray, rng: np.random.Generator, op_space: np.ndarray, alg_q: int) -> np.ndarray:
+    choose_idx = _as_int(path[0, 0])
+    update_idx = _as_int(path[-1, -1])
+    curr_q = int(rng.integers(1, alg_q + 1))
+    new_path = np.zeros((curr_q + 1, 2), dtype=int)
+    start = int(rng.integers(op_space[1, 0], op_space[1, 1] + 1))
+    new_path[0, 0] = choose_idx
+    new_path[0, 1] = start
+    prev = start
+    for row in range(1, curr_q):
+        nxt = int(rng.integers(op_space[1, 0], op_space[1, 1] + 1))
+        new_path[row, 0] = prev
+        new_path[row, 1] = nxt
+        prev = nxt
+    new_path[-1, 0] = prev
+    new_path[-1, 1] = update_idx
+    return new_path
 
 
 def disturb(algs: Any, setting: Any, inner_g: int, aux: Any) -> Tuple[List[List[np.ndarray]], List[List[List[Any]]], Any]:
@@ -63,144 +130,78 @@ def disturb(algs: Any, setting: Any, inner_g: int, aux: Any) -> Tuple[List[List[
     for idx, alg in enumerate(alg_list):
         this_op_raw = getattr(alg, "operator", None)
         this_para_raw = getattr(alg, "parameter", None)
-        if not this_op_raw or this_para_raw is None:
+        if this_op_raw is None or this_para_raw is None:
             raise ValueError("Algorithm must provide operator and parameter fields for disturb().")
 
-        if isinstance(this_op_raw[0], (list, tuple)):
-            path_list = [np.array(path, copy=True) for path in this_op_raw[0]]
-        else:
-            path_list = [np.array(path, copy=True) for path in this_op_raw]
-        this_op = path_list
+        paths = [np.array(path, copy=True) for path in this_op_raw]
         this_para = _copy_parameter_structure(this_para_raw)
 
-        ind_search: List[int] = []
-        for path in this_op:
-            if path.shape[0] > 1:
-                for val in path[1:, 0]:
-                    ind_search.append(_as_int(val))
-        ind_op: List[int] = []
-        if this_op:
-            ind_op.append(_as_int(this_op[0][0, 0]))
-            ind_op.extend(ind_search)
-            ind_op.append(_as_int(this_op[0][-1, -1]))
-
-        ind_para = [p for p in ind_non_empty_para if (p + 1) in ind_op]
+        op_positions, op_values = _gather_operator_positions(paths)
+        total_ops = len(op_positions)
+        ind_para = [p for p in ind_non_empty_para if (p + 1) in op_values]
 
         aux_entry = aux_list[idx] if isinstance(aux_list[idx], dict) else {}
 
         if inner_g == 1:
-            if not tune_para:
-                total_ops = len(ind_op)
-                total = total_ops + len(ind_para)
-                if total == 0:
-                    seed = 1
-                else:
-                    prob_op = 1.0 / total
-                    prob_para = prob_op * len(ind_para)
-                    probs = [prob_op] * total_ops + [prob_para]
-                    # Disable impossible moves
-                    if op_space[0, 1] - op_space[0, 0] + 1 <= 1 and probs:
-                        probs[0] = 0.0
-                    if op_space[1, 1] - op_space[1, 0] + 1 <= 1 and len(probs) >= 3:
-                        for j in range(1, len(probs) - 1):
-                            probs[j] = 0.0
-                    if op_space[2, 1] - op_space[2, 0] + 1 <= 1 and probs:
-                        probs[-2 if len(probs) > 1 else 0] = 0.0
-                    if len(ind_para) == 0 and probs:
-                        probs[-1] = 0.0
-                    probs = np.asarray(probs, dtype=float)
-                    if probs.sum() <= 0:
-                        seed = int(rng.integers(max(1, total_ops))) + 1
-                    else:
-                        probs = probs / probs.sum()
-                        seed = int(rng.choice(len(probs), p=probs)) + 1
+            num_choices = total_ops + (1 if ind_para else 0)
+            if not tune_para and num_choices > 0:
+                probs = np.ones(num_choices, dtype=float)
+                probs /= probs.sum()
+                seed = int(rng.choice(num_choices, p=probs)) + 1
+            elif tune_para and ind_para:
+                seed = total_ops + 1
             else:
-                seed = len(ind_op) + 1
+                seed = 1
             aux_entry["seed"] = seed
         else:
-            seed = int(aux_entry.get("seed", len(ind_op) + 1))
+            seed = int(aux_entry.get("seed", total_ops + 1))
 
-        if seed <= len(ind_op) and len(ind_op) > 0:
-            # Operator disturbance
-            if seed == 1:
-                # Choose operator
+        if seed <= total_ops and total_ops > 0:
+            category, path_idx, row_idx = op_positions[seed - 1]
+            path = paths[path_idx]
+            if category == "choose":
                 pool = np.arange(op_space[0, 0], op_space[0, 1] + 1)
-                current = ind_op[0]
+                current = _as_int(path[0, 0])
                 pool = pool[pool != current]
                 if pool.size > 0:
-                    ind_new = _as_int(rng.choice(pool))
-                    for path in this_op:
-                        path[0, 0] = ind_new
-            elif seed == len(ind_op):
-                # Update operator
+                    new_idx = _as_int(rng.choice(pool))
+                    path[0, 0] = new_idx
+                paths[path_idx] = path
+            elif category == "update":
                 pool = np.arange(op_space[2, 0], op_space[2, 1] + 1)
-                current = ind_op[-1]
+                current = _as_int(path[-1, -1])
                 pool = pool[pool != current]
                 if pool.size > 0:
-                    ind_new = _as_int(rng.choice(pool))
-                    for path in this_op:
-                        path[-1, -1] = ind_new
-            else:
-                if alg_p != 1:
-                    raise NotImplementedError("disturb() currently supports single-path algorithms only")
-                path = this_op[0]
-                pool = np.arange(op_space[1, 0], op_space[1, 1] + 1)
-                current = ind_op[seed - 1]
-                pool = pool[pool != current]
-                if pool.size == 0:
-                    ind_new = current
+                    new_idx = _as_int(rng.choice(pool))
+                    path[-1, -1] = new_idx
+                paths[path_idx] = path
+            else:  # search
+                if alg_p == 1:
+                    path = _disturb_search_single(path, row_idx, rng, op_space, alg_q)
                 else:
-                    ind_new = _as_int(rng.choice(pool))
-                num_search = path.shape[0] - 1
-                if num_search == 1 and num_search < alg_q:
-                    sample_pool = list(pool) + [np.inf]
-                elif num_search > 1 and num_search < alg_q:
-                    sample_pool = list(pool) + [np.inf, -np.inf]
-                elif num_search > 1 and num_search == alg_q:
-                    sample_pool = list(pool) + [-np.inf]
-                else:
-                    sample_pool = list(pool)
-                if not sample_pool:
-                    sample_choice = ind_new
-                else:
-                    sample_choice = rng.choice(sample_pool)
-                row_idx = seed - 1  # zero-based
-                if sample_choice == np.inf:
-                    insert_row = np.zeros(2, dtype=int)
-                    insert_row[0] = ind_new
-                    insert_row[1] = path[row_idx, 1]
-                    path = np.insert(path, row_idx + 1, insert_row, axis=0)
-                    path[row_idx, 1] = ind_new
-                elif sample_choice == -np.inf and path.shape[0] > 2:
-                    path[row_idx - 1, 1] = path[row_idx, 1]
-                    path = np.delete(path, row_idx, axis=0)
-                else:
-                    path[row_idx, 0] = ind_new
-                    path[row_idx - 1, 1] = ind_new
-                this_op[0] = path
+                    path = _disturb_search_multi(path, rng, op_space, alg_q)
+                paths[path_idx] = path
         else:
-            # Parameter disturbance (resample within bounds)
+            if not ind_para:
+                seed = total_ops + 1
             for para_idx in ind_para:
                 entry = this_para[para_idx]
                 values = entry[0]
                 if values is None:
                     continue
                 behavior = entry[1]
-                space = para_local_space[para_idx]
-                if behavior != "GS" and space is None:
-                    space = para_space[para_idx]
+                space = para_local_space[para_idx] if (behavior != "GS" and para_local_space[para_idx] is not None) else para_space[para_idx]
                 if space is None:
                     continue
                 bounds = np.asarray(space, dtype=float)
-                if bounds.ndim != 2 or bounds.shape[1] != 2:
-                    continue
+                if bounds.ndim == 1:
+                    bounds = bounds.reshape(-1, 2)
                 lower = bounds[:, 0]
                 upper = bounds[:, 1]
-                new_vals = lower + (upper - lower) * rng.random(lower.shape)
-                entry[0] = new_vals
+                entry[0] = lower + (upper - lower) * rng.random(lower.shape)
                 this_para[para_idx] = entry
 
-        new_ops.append(this_op)
+        new_ops.append(paths)
         new_paras.append(this_para)
         aux_list[idx] = aux_entry
 
