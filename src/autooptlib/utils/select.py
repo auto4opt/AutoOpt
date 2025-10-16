@@ -1,12 +1,13 @@
 """Selection utilities mirroring MATLAB Select.m (average mode)."""
 from __future__ import annotations
 
-from typing import Any, Iterable, List, Sequence
+from typing import Any, Iterable, List, Sequence, Tuple
 
 import numpy as np
 
 from .design import Design
 from .design._helpers import get_flex
+from .general.select_stats import friedman_statistic
 
 
 def _ensure_design_list(algs: Iterable[Design]) -> List[Design]:
@@ -38,6 +39,20 @@ def _collect_performance(algs: List[Design], setting: Any, seed_instance: Sequen
     return matrix
 
 
+def _compare_friedman(matrix: np.ndarray, alpha: float) -> np.ndarray:
+    ranks, p_values = friedman_statistic(matrix)
+    wins = np.zeros(matrix.shape[1], dtype=int)
+    for (i, j), p_val in np.ndenumerate(p_values):
+        if i >= j or np.isnan(p_val):
+            continue
+        diff = ranks[i] - ranks[j]
+        if diff < 0 and p_val < alpha:
+            wins[i] += 1
+        elif diff > 0 and p_val < alpha:
+            wins[j] += 1
+    return wins
+
+
 def select(algs: Iterable[Design], problem: Any, data: Any, setting: Any, seed_instance: Sequence[int]) -> List[Design]:
     alg_list = _ensure_design_list(algs)
     if not alg_list:
@@ -45,33 +60,32 @@ def select(algs: Iterable[Design], problem: Any, data: Any, setting: Any, seed_i
 
     _require_performance(alg_list, problem, data, setting, seed_instance)
     all_perf = _collect_performance(alg_list, setting, seed_instance)
-    averages = np.mean(all_perf, axis=0)
 
     compare = get_flex(setting, "compare", "average")
     evaluate_mode = get_flex(setting, "evaluate", "exact")
     alg_n = int(get_flex(setting, "alg_n", len(alg_list)))
+    alpha = float(get_flex(setting, "alpha", 0.05))
 
-    if compare != "average":
-        raise NotImplementedError("Only compare='average' is supported in the current Python port")
-
-    if evaluate_mode in {"exact", "approximate"}:
+    if compare == "average":
+        averages = np.mean(all_perf, axis=0)
         order = np.argsort(averages)
-        top = order[: min(alg_n, len(order))]
-        return [alg_list[i] for i in top]
+        if evaluate_mode in {"exact", "approximate", "racing"}:
+            top = order[: min(alg_n, len(order))]
+            return [alg_list[i] for i in top]
+        if evaluate_mode == "intensification":
+            old_avgs = averages[:alg_n]
+            threshold = float(np.max(old_avgs)) if old_avgs.size else np.inf
+            return [alg for alg, avg in zip(alg_list[alg_n:], averages[alg_n:]) if avg < threshold]
+        raise NotImplementedError(f"Unsupported evaluate mode: {evaluate_mode}")
 
-    if evaluate_mode == "intensification":
-        old = alg_list[:alg_n]
-        new = alg_list[alg_n:]
-        if not new:
-            return []
-        old_avgs = averages[:alg_n]
-        threshold = float(np.max(old_avgs)) if old_avgs.size else np.inf
-        selected = [alg for alg, avg in zip(new, averages[alg_n:]) if avg < threshold]
-        return selected
+    if compare == "statistic":
+        wins = _compare_friedman(all_perf, alpha=alpha)
+        order = np.argsort(-wins)
+        if evaluate_mode in {"exact", "approximate", "racing"}:
+            top = order[: min(alg_n, len(order))]
+            return [alg_list[i] for i in top]
+        if evaluate_mode == "intensification":
+            return [alg_list[i] for i in order if i >= alg_n and wins[i] > 0]
+        raise NotImplementedError(f"Unsupported evaluate mode: {evaluate_mode}")
 
-    if evaluate_mode == "racing":
-        order = np.argsort(averages)
-        top = order[: min(alg_n, len(order))]
-        return [alg_list[i] for i in top]
-
-    raise NotImplementedError(f"Unsupported evaluate mode: {evaluate_mode}")
+    raise NotImplementedError(f"Unsupported compare mode: {compare}")
