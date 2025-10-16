@@ -5,8 +5,8 @@ from typing import Any, Iterable, List, Sequence
 
 import numpy as np
 
-from ..design import Design
-from ..design._helpers import get_flex
+from .design import Design
+from .design._helpers import get_flex
 
 
 def _ensure_design_list(algs: Iterable[Design]) -> List[Design]:
