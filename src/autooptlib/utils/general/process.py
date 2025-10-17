@@ -10,6 +10,7 @@ from typing import Any, Callable, Iterable, List, Sequence, Tuple
 import numpy as np
 
 from ..design import Approximate, Design
+from ..solve import input_algorithm, run_algorithm
 from ..design._helpers import problem_list
 from ..general.improve_rate import improve_rate
 from ..space import space
@@ -251,7 +252,16 @@ def process(problem_descriptor: Any, *args, setting: Any, app: Any | None = None
         return _process_design(problem_descriptor, instance_train, instance_test, setting_ns, app)
 
     if mode == "solve":
-        raise NotImplementedError("Solve mode is not yet implemented in the Python translation.")
+        if len(args) < 1:
+            raise ValueError("Solve mode requires instance list argument")
+        instance_solve = args[0]
+        problems = _build_problem_struct(problem_descriptor, instance_solve, setting_ns)
+        construct_fn = _resolve_problem_callable(problem_descriptor)
+        problems, data, _ = construct_fn(problems, instance_solve, "construct")
+        alg, setting_ns = input_algorithm(setting_ns)
+        _progress(app, "Solving...")
+        best_solutions, all_solutions = run_algorithm(alg, problems, data, app, setting_ns)
+        _progress(app, "Complete")
+        return best_solutions, all_solutions
 
     raise ValueError("Mode must be 'design' or 'solve'.")
-

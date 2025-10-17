@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import math
-from typing import Any, Iterable, List, Sequence
+from typing import Any, Iterable, List, Sequence, TYPE_CHECKING
 
 import numpy as np
 
-from . import Design
 from ._embedding import embedding
+
+if TYPE_CHECKING:
+    from . import Design
 
 
 class _KNNModel:
@@ -43,14 +45,14 @@ class _KNNModel:
         return preds
 
 
-def _mean_performance(alg: Design) -> float:
+def _mean_performance(alg: 'Design') -> float:
     values = alg.ave_perform_all()
     if values.size == 0:
         return np.inf
     return float(np.mean(values))
 
 
-def _mean_performance_approx(alg: Design) -> float:
+def _mean_performance_approx(alg: 'Design') -> float:
     values = alg.ave_perform_approx_all()
     if values.size == 0:
         return np.inf
@@ -61,7 +63,9 @@ class Approximate:
     """Python translation of MATLAB Approximate class."""
 
     def __init__(self, problem: Any, data: Any, setting: Any, ind_instance: Sequence[int]):
-        self.data: List[Design] = []
+        from . import Design
+
+        self.data: List['Design'] = []
         self.embedding = None
         self.model: _KNNModel | None = None
         self.rand_seed: np.ndarray
@@ -79,7 +83,7 @@ class Approximate:
         self.exact_g = np.arange(1, alg_gmax + 1, max(1, int(round(step))))
 
         seeds = list(ind_instance)
-        train_algs_exact: List[Design] = []
+        train_algs_exact: List['Design'] = []
         for _ in range(500):
             alg = Design(problem, setting)
             alg.evaluate(problem, data, setting, seeds)
@@ -91,23 +95,23 @@ class Approximate:
         self.model = self.GetModel(self.data, setting)
 
     # Methods mirroring MATLAB class ---------------------------------------
-    def GetEmbed(self, data: Iterable[Design], setting: Any):
+    def GetEmbed(self, data: Iterable['Design'], setting: Any):
         return embedding(list(data), setting, self, "get")
 
-    def UseEmbed(self, data: Iterable[Design], setting: Any) -> np.ndarray:
+    def UseEmbed(self, data: Iterable['Design'], setting: Any) -> np.ndarray:
         return embedding(list(data), setting, self, "use")
 
-    def use_embed(self, data: Iterable[Design], setting: Any) -> np.ndarray:
+    def use_embed(self, data: Iterable['Design'], setting: Any) -> np.ndarray:
         return self.UseEmbed(data, setting)
 
-    def GetModel(self, data: Iterable[Design], setting: Any) -> _KNNModel:
+    def GetModel(self, data: Iterable['Design'], setting: Any) -> _KNNModel:
         embed_algs = self.UseEmbed(list(data), setting)
         labels = np.array([_mean_performance(alg) for alg in data], dtype=float)
         model = _KNNModel()
         model.fit(embed_algs, labels)
         return model
 
-    def UpdateModel(self, algs: Sequence[Design], setting: Any):
+    def UpdateModel(self, algs: Sequence['Design'], setting: Any):
         n = len(algs)
         actual = np.array([_mean_performance(alg) for alg in algs], dtype=float)
         approx = np.array([_mean_performance_approx(alg) for alg in algs], dtype=float)
@@ -123,7 +127,6 @@ class Approximate:
         self.model = self.GetModel(self.data, setting)
         return self
 
-    def UseModel(self, algs: Sequence[Design], setting: Any) -> np.ndarray:
+    def UseModel(self, algs: Sequence['Design'], setting: Any) -> np.ndarray:
         features = self.UseEmbed(algs, setting)
         return self.model.predict(features) if self.model else np.zeros(features.shape[0])
-

@@ -1,14 +1,20 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Iterable, List, Optional, Sequence, Tuple
+from pathlib import Path
+from typing import Any, Iterable, List, Optional, Sequence, Tuple, TYPE_CHECKING
+import pickle
 
 import numpy as np
 import time
 
 from ..design._helpers import ensure_rng, get_flex, get_problem_type
+from ..design._helpers import Pathway, PathwayParam, SearchStep, SearchParam
 from ..general.improve_rate import improve_rate
 from ...components import get_component
+
+if TYPE_CHECKING:
+    from ..design import Design
 
 
 @dataclass
@@ -254,7 +260,10 @@ def run_design(pathways: List[Any], params: List[Any], problem: Any, data: Any, 
     metric = get_flex(setting, "metric", "quality")
     prob_n = float(get_flex(setting, "prob_n", 1.0))
     tmax = get_flex(setting, "tmax", np.inf)
-    thres = float(get_flex(setting, "thres", -np.inf))
+    if tmax is None:
+        tmax = np.inf
+    thres_val = get_flex(setting, "thres", -np.inf)
+    thres = float(thres_val if thres_val is not None else -np.inf)
     gmax = int(get_flex(problem, "Gmax", 10))
 
     if metric == "quality":
@@ -351,5 +360,390 @@ def run_design(pathways: List[Any], params: List[Any], problem: Any, data: Any, 
         "archives": archives,
         "best_solution": final_solution,
     }
+
+
+# ---------------------------------------------------------------------------
+# Utility helpers
+# ---------------------------------------------------------------------------
+
+def _placeholder_solution() -> Solution:
+    return Solution(dec=np.zeros((1, 0)), obj=float("inf"), con=float("inf"), fit=float("inf"))
+
+
+def _ensure_solution_instance(obj: Any) -> Solution:
+    if isinstance(obj, Solution):
+        return obj
+    if obj is None:
+        return _placeholder_solution()
+    if hasattr(obj, "dec") and hasattr(obj, "fit"):
+        return Solution(
+            dec=np.asarray(getattr(obj, "dec")),
+            obj=float(getattr(obj, "obj", np.inf)),
+            con=float(getattr(obj, "con", np.inf)),
+            fit=float(getattr(obj, "fit", np.inf)),
+        )
+    return _placeholder_solution()
+
+
+# ---------------------------------------------------------------------------
+# Solve-mode helpers (InputAlg / RunAlg translation)
+# ---------------------------------------------------------------------------
+
+def _normalize_setting(setting: Any) -> Any:
+    if isinstance(setting, dict):
+        return type("Setting", (), setting)()
+    for attr in dir(setting):
+        if attr[0].isupper():
+            setattr(setting, attr.lower(), getattr(setting, attr))
+    return setting
+
+
+def _to_array(value: Any) -> Optional[np.ndarray]:
+    if value is None or value == []:
+        return None
+    arr = np.asarray(value, dtype=float)
+    return arr.reshape(-1) if arr.ndim > 0 else arr
+
+
+def _make_search_step(primary: str, secondary: Optional[str], termination: Sequence[float]) -> SearchStep:
+    term = np.asarray(termination, dtype=float).reshape(-1)
+    return SearchStep(primary=primary, secondary=secondary if secondary else None, termination=term)
+
+
+def _make_search_param(primary: Any, secondary: Any) -> SearchParam:
+    return SearchParam(primary=_to_array(primary), secondary=_to_array(secondary))
+
+
+def _build_default_algorithm(name: str, setting: Any) -> "Design":
+    name = name.strip().lower()
+    tmpl = {
+        "continuous genetic algorithm": [
+            (
+                "choose_tournament",
+                [
+                    ("cross_sim_binary", "search_mu_polynomial", (-np.inf, 1), [20.0], [0.2, 20.0]),
+                ],
+                "update_round_robin",
+                [],
+            ),
+        ],
+        "evolutionary programming": [
+            (
+                "choose_tournament",
+                [
+                    ("search_mu_gaussian", None, (-np.inf, 1), None, None),
+                ],
+                "update_round_robin",
+                [],
+            ),
+        ],
+        "fast evolutionary programming": [
+            (
+                "choose_tournament",
+                [
+                    ("search_mu_cauchy", None, (-np.inf, 1), None, None),
+                ],
+                "update_round_robin",
+                [],
+            ),
+        ],
+        "cma-es": [
+            (
+                "choose_traverse",
+                [
+                    ("search_cma", None, (-np.inf, 1), None, None),
+                ],
+                "update_greedy",
+                [],
+            ),
+        ],
+        "estimation of distribution": [
+            (
+                "choose_traverse",
+                [
+                    ("search_eda", None, (-np.inf, 1), None, None),
+                ],
+                "update_greedy",
+                [],
+            ),
+        ],
+        "particle swarm optimization": [
+            (
+                "choose_traverse",
+                [
+                    ("search_pso", None, (-np.inf, 1), [0.9], None),
+                ],
+                "update_pairwise",
+                [],
+            ),
+        ],
+        "differential evolution": [
+            (
+                "choose_traverse",
+                [
+                    ("search_de_current", None, (-np.inf, 1), [0.9, 0.1], None),
+                ],
+                "update_pairwise",
+                [],
+            ),
+        ],
+        "continuous random search": [
+            (
+                "choose_traverse",
+                [
+                    ("reinit_continuous", None, (-np.inf, 1), None, None),
+                ],
+                "update_greedy",
+                [],
+            ),
+        ],
+        "discrete genetic algorithm": [
+            (
+                "choose_tournament",
+                [
+                    ("cross_point_uniform", "search_reset_rand", (-np.inf, 1), [0.2], [0.2]),
+                ],
+                "update_round_robin",
+                [],
+            ),
+        ],
+        "discrete iterative local search": [
+            (
+                "choose_traverse",
+                [
+                    ("search_reset_one", None, (0.05, 10), None, None),
+                    ("reinit_discrete", None, (-np.inf, 1), None, None),
+                ],
+                "update_greedy",
+                [],
+            ),
+        ],
+        "discrete simulated annealing": [
+            (
+                "choose_traverse",
+                [
+                    ("search_reset_one", None, (-np.inf, 1), None, None),
+                ],
+                "update_simulated_annealing",
+                [],
+                np.array([0.1]),
+            ),
+        ],
+        "discrete random search": [
+            (
+                "choose_traverse",
+                [
+                    ("reinit_discrete", None, (-np.inf, 1), None, None),
+                ],
+                "update_greedy",
+                [],
+            ),
+        ],
+        "permutation genetic algorithm": [
+            (
+                "choose_tournament",
+                [
+                    ("cross_order_two", "search_swap", (-np.inf, 1), None, None),
+                ],
+                "update_round_robin",
+                [],
+            ),
+        ],
+        "permutation iterative local search": [
+            (
+                "choose_traverse",
+                [
+                    ("search_insert", None, (0.05, 10), None, None),
+                    ("reinit_permutation", None, (-np.inf, 1), None, None),
+                ],
+                "update_greedy",
+                [],
+            ),
+        ],
+        "permutation simulated annealing": [
+            (
+                "choose_traverse",
+                [
+                    ("search_insert", None, (-np.inf, 1), None, None),
+                ],
+                "update_simulated_annealing",
+                [],
+                np.array([0.1]),
+            ),
+        ],
+        "permutation variable neighborhood search": [
+            (
+                "choose_traverse",
+                [
+                    ("search_swap", None, (0.05, 10), None, None),
+                    ("search_scramble", None, (0.05, 10), None, None),
+                    ("search_insert", None, (0.05, 10), None, None),
+                ],
+                "update_greedy",
+                [],
+            ),
+        ],
+        "permutation random search": [
+            (
+                "choose_traverse",
+                [
+                    ("reinit_permutation", None, (-np.inf, 1), None, None),
+                ],
+                "update_greedy",
+                [],
+            ),
+        ],
+    }
+
+    if name not in tmpl:
+        raise NotImplementedError(f"Preset algorithm {name!r} is not available in the Python translation.")
+
+    pathways_cfg = tmpl[name]
+    pathways: List[Pathway] = []
+    params: List[PathwayParam] = []
+    for item in pathways_cfg:
+        choose = item[0]
+        search_entries = item[1]
+        update = item[2]
+        archive = item[3] if len(item) > 3 else []
+        update_param = item[4] if len(item) > 4 else None
+
+        search_steps = []
+        search_params = []
+        for entry in search_entries:
+            primary, secondary, termination, primary_param, secondary_param = entry
+            search_steps.append(_make_search_step(primary, secondary, termination))
+            search_params.append(_make_search_param(primary_param, secondary_param))
+
+        pathways.append(Pathway(choose=choose, search=search_steps, update=update, archive=archive))
+        params.append(
+            PathwayParam(
+                choose=None,
+                search=search_params,
+                update=_to_array(update_param),
+            )
+        )
+
+    from ..design import Design
+
+    design = Design()
+    design.construct([pathways], [params])
+    return design
+
+
+def input_algorithm(setting: Any) -> Tuple["Design", Any]:
+    setting = _normalize_setting(setting)
+    alg_file = getattr(setting, "AlgFile", getattr(setting, "alg_file", ""))
+    if alg_file and str(alg_file).lower() != "none":
+        path = Path(alg_file)
+        if not path.exists():
+            raise FileNotFoundError(f"Algorithm file {alg_file} not found.")
+        with path.open("rb") as handle:
+            data = pickle.load(handle)
+        if isinstance(data, dict) and "algs" in data:
+            alg = data["algs"][0]
+        else:
+            alg = data[0] if isinstance(data, (list, tuple)) else data
+        from ..design import Design
+        if not isinstance(alg, Design):
+            raise TypeError("Loaded algorithm is not a Design instance.")
+        setting.AlgP = len(getattr(alg, "operator_pheno", []) or [])
+        return alg, setting
+
+    alg_name = getattr(setting, "AlgName", getattr(setting, "alg_name", "")).strip()
+    if not alg_name:
+        raise ValueError("Please specify AlgFile or AlgName in solve mode.")
+    design = _build_default_algorithm(alg_name.lower(), setting)
+    setting.AlgP = len(design.operator_pheno or [])
+    return design, setting
+
+
+def _extract_mode(problem: Any) -> str:
+    behavior = get_flex(problem, "type", ["continuous", "static"])
+    if isinstance(behavior, (list, tuple)) and len(behavior) > 1:
+        return str(behavior[1])
+    return "static"
+
+
+def run_algorithm(alg: 'Design', problems: Sequence[Any], data: Sequence[Any], app: Any, setting: Any):
+    pathways = alg.operator_pheno[0]
+    params = alg.parameter_pheno[0]
+    alg_runs = int(get_flex(setting, "AlgRuns", 1))
+    best_solutions: List[List[Solution]] = []
+    all_solutions: List[List[List[Solution]]] = []
+
+    for idx, problem in enumerate(problems):
+        data_obj = data[idx] if idx < len(data) else None
+        mode = _extract_mode(problem)
+        run_histories: List[List[Solution]] = []
+        run_best: List[Solution] = []
+        fitness_sequence: List[float] = []
+
+        for run in range(alg_runs):
+            if mode == "static":
+                result = run_design(pathways, params, problem, data_obj, setting)
+                history = [sol for sol in result["history"] if isinstance(sol, Solution)]
+                best = result["best_solution"]
+                if best is None and history:
+                    best = history[-1]
+                run_histories.append(history)
+                run_best.append(_ensure_solution_instance(best))
+            elif mode == "sequential":
+                current_problem = problem
+                current_data = data_obj
+                sequence_solutions: List[Solution] = []
+                cumulative = 0.0
+                while getattr(current_data, "continue", False):
+                    result = run_design(pathways, params, current_problem, current_data, setting)
+                    best = result["best_solution"]
+                    if best is None and result["history"]:
+                        history = [sol for sol in result["history"] if isinstance(sol, Solution)]
+                        best = history[-1] if history else None
+                    if best is None:
+                        break
+                    sequence_solutions.append(best)
+                    cumulative += float(best.fit)
+                    next_fn = getattr(current_problem, "advance_sequence", None)
+                    if callable(next_fn):
+                        current_problem, current_data = next_fn(best, current_data)
+                    else:
+                        name = getattr(current_problem, "name", None)
+                        if callable(name):
+                            current_problem, current_data, _ = name(current_problem, current_data, best, "sequence")
+                        else:
+                            break
+                    if current_problem is problem and current_data is data_obj:
+                        break
+                run_histories.append(sequence_solutions)
+                run_best.append(sequence_solutions[-1] if sequence_solutions else _placeholder_solution())
+                fitness_sequence.append(cumulative)
+            else:
+                raise NotImplementedError(f"Unsupported problem mode: {mode}")
+
+            if app is not None and hasattr(app, "TextArea"):
+                pct = (idx * alg_runs + run + 1) / (len(problems) * alg_runs)
+                app.TextArea.Value = f"Solving... {pct * 100:.1f}%"
+
+        if mode == "static":
+            best_idx = int(np.argmin([b.fit for b in run_best]))
+            all_solutions.append(run_histories[best_idx])
+        else:
+            best_idx = int(np.argmin(fitness_sequence)) if fitness_sequence else 0
+            all_solutions.append(run_histories[best_idx])
+        best_solutions.append(run_best)
+
+    return best_solutions, all_solutions
+
+
+__all__ = [
+    "Solution",
+    "SolutionSet",
+    "repair_sol",
+    "make_solutions",
+    "run_design",
+    "input_algorithm",
+    "run_algorithm",
+]
+
 
 
