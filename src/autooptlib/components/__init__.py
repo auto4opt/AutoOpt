@@ -6,6 +6,11 @@ from importlib import import_module
 from typing import Callable, Dict
 
 _COMPONENT_MODULES = {
+    "archive_best": "archive_best",
+    "archive_diversity": "archive_diversity",
+    "archive_statistic": "archive_statistic",
+    "archive_tabu": "archive_tabu",
+    "choose_brainstorm": "choose_brainstorm",
     "choose_traverse": "choose_traverse",
     "choose_tournament": "choose_tournament",
     "choose_roulette_wheel": "choose_roulette_wheel",
@@ -19,9 +24,12 @@ _COMPONENT_MODULES = {
     "cross_point_two": "cross_point_two",
     "cross_point_uniform": "cross_point_uniform",
     "cross_point_n": "cross_point_n",
+    "cross_arithmetic": "cross_arithmetic",
+    "cross_sim_binary": "cross_sim_binary",
     "search_de_current": "search_de_current",
     "search_de_current_best": "search_de_current_best",
     "search_de_random": "search_de_random",
+    "search_eda": "search_eda",
     "search_mu_gaussian": "search_mu_gaussian",
     "search_mu_cauchy": "search_mu_cauchy",
     "search_mu_uniform": "search_mu_uniform",
@@ -40,9 +48,6 @@ _COMPONENT_MODULES = {
     "search_insert": "search_insert",
     "cross_order_two": "cross_order_two",
     "cross_order_n": "cross_order_n",
-    "archive_best": "archive_best",
-    "archive_diversity": "archive_diversity",
-    "archive_statistic": "archive_statistic",
     "para_cma": "para_cma",
     "para_pso": "para_pso",
 }

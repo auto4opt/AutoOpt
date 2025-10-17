@@ -2,12 +2,32 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Iterable
 
 import numpy as np
 
-from ..utils.solve import SolutionSet
 from ._utils import ensure_rng, flex_get
+
+try:  # noqa: SIM105
+    from ..utils.solve import SolutionSet  # type: ignore
+except Exception:  # pylint: disable=broad-except
+    class SolutionSet(list):  # type: ignore
+        def __init__(self, items: Iterable[Any]):
+            super().__init__(items)
+
+        def decs(self) -> np.ndarray:
+            if not self:
+                return np.zeros((0, 0))
+            return np.vstack([np.asarray(flex_get(sol, "dec"), dtype=float) for sol in self])
+
+        def objs(self) -> np.ndarray:
+            return np.asarray([flex_get(sol, "obj") for sol in self], dtype=float).reshape(-1, 1)
+
+        def cons(self) -> np.ndarray:
+            return np.asarray([flex_get(sol, "con") for sol in self], dtype=float).reshape(-1, 1)
+
+        def fits(self) -> np.ndarray:
+            return np.asarray([flex_get(sol, "fit") for sol in self], dtype=float).reshape(-1, 1)
 
 
 def _ensure_solution_set(solution: Any) -> SolutionSet:
@@ -70,4 +90,3 @@ def search_pso(*args):
         return ["", "GS"], None
 
     raise ValueError(f"Unsupported mode: {mode}")
-
