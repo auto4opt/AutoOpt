@@ -68,14 +68,14 @@ def evaluate(self, problem: Any, data: Any, setting: Any, seed_instance: Sequenc
         for run in range(runs):
             if mode == "static":
                 result = run_design(pathways, params, problem_obj, data_obj, setting)
-                history = result["best_history"]
+                fit_history = result["fit_history"]
                 evaluations = result["evaluations"]
                 elapsed = result["elapsed"]
 
                 if metric == "quality":
-                    value = float(history[-1]) if history else np.inf
+                    value = float(fit_history[-1]) if fit_history else np.inf
                 elif metric == "auc":
-                    history_arr = np.asarray(history, dtype=float)
+                    history_arr = np.asarray(fit_history, dtype=float)
                     if history_arr.size == 0:
                         value = np.inf
                     else:
@@ -86,7 +86,7 @@ def evaluate(self, problem: Any, data: Any, setting: Any, seed_instance: Sequenc
                 elif metric == "runtimeSec":
                     value = elapsed
                 else:
-                    value = float(history[-1]) if history else np.inf
+                    value = float(fit_history[-1]) if fit_history else np.inf
                 target[seed, run] = value
 
             elif mode == "sequential":
@@ -97,23 +97,23 @@ def evaluate(self, problem: Any, data: Any, setting: Any, seed_instance: Sequenc
                 curr_data = data_obj
                 while getattr(curr_data, "continue", False):
                     result = run_design(pathways, params, curr_prob, curr_data, setting)
-                    history = result["best_history"]
+                    fit_history = result["fit_history"]
                     best_solution = result["best_solution"]
                     evaluations += result["evaluations"]
                     elapsed += result["elapsed"]
                     if metric == "quality":
-                        cumulative += float(history[-1]) if history else np.inf
+                        cumulative += float(fit_history[-1]) if fit_history else np.inf
                     elif metric in {"runtimeFE", "runtimeSec"}:
                         cumulative += result["elapsed"] if metric == "runtimeSec" else result["evaluations"]
                     elif metric == "auc":
-                        history_arr = np.asarray(history, dtype=float)
+                        history_arr = np.asarray(fit_history, dtype=float)
                         if history_arr.size == 0:
                             cumulative += np.inf
                         else:
                             normalized = history_arr - history_arr.min()
                             cumulative += float(np.trapz(normalized, dx=1.0))
                     else:
-                        cumulative += float(history[-1]) if history else np.inf
+                        cumulative += float(fit_history[-1]) if fit_history else np.inf
                     if best_solution is None:
                         break
                     curr_prob, curr_data = _update_sequential(curr_prob, curr_data, best_solution)
@@ -134,3 +134,4 @@ def evaluate(self, problem: Any, data: Any, setting: Any, seed_instance: Sequenc
         self.performance = target
 
     return self
+

@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Iterable, List, Sequence, Tuple
+from typing import Any, Iterable, List, Optional, Sequence, Tuple
 
 import numpy as np
+import time
 
-from ..design._helpers import get_problem_type, get_flex, ensure_rng
+from ..design._helpers import ensure_rng, get_flex, get_problem_type
 from ..general.improve_rate import improve_rate
 from ...components import get_component
 
@@ -272,23 +273,31 @@ def run_design(pathways: List[Any], params: List[Any], problem: Any, data: Any, 
         Tmax = np.inf
         threshold = thres
 
-    best_history: List[float] = []
+    history: List[Optional[Solution]] = []
+    fit_history: List[float] = []
     evaluations = 0
-    elapsed = 0.0
+    elapsed_seconds = 0.0
     generation = 1
 
     while True:
-        current_best = float(np.min(solutions.fits())) if len(solutions) else np.inf
-        best_history.append(current_best)
+        if len(solutions):
+            best_solution = min(list(solutions), key=lambda s: s.fit)
+            history.append(best_solution)
+            fit_history.append(float(best_solution.fit))
+        else:
+            history.append(None)
+            fit_history.append(np.inf)
 
         if generation > gmax:
             break
-        if metric == "quality" and current_best <= threshold:
+        if metric == "quality" and fit_history[-1] <= threshold:
             break
         if metric == "runtimeFE" and evaluations >= Tmax:
             break
-        if metric == "runtimeSec" and elapsed >= Tmax:
+        if metric == "runtimeSec" and elapsed_seconds >= Tmax:
             break
+
+        iteration_start = time.perf_counter()
 
         choose_fn = get_component(pathways[0].choose)
         choose_param = getattr(params[0], "choose", None)
@@ -322,19 +331,25 @@ def run_design(pathways: List[Any], params: List[Any], problem: Any, data: Any, 
                 archives[j], _ = archive_fn(solutions, archives[j], problem, "execute")
 
         if metric == "runtimeFE":
-            elapsed = evaluations
+            pass
         elif metric == "runtimeSec":
-            elapsed += 1.0
+            elapsed_seconds += time.perf_counter() - iteration_start
 
         generation += 1
 
-    best_solution = min(list(solutions), key=lambda s: s.fit) if len(solutions) else None
+    if history and history[-1] is None:
+        final_solution = None
+    else:
+        final_solution = history[-1]
 
     return {
         "solutions": solutions,
-        "best_history": best_history,
+        "history": history,
+        "fit_history": fit_history,
         "evaluations": evaluations,
-        "elapsed": elapsed,
+        "elapsed": elapsed_seconds,
         "archives": archives,
-        "best_solution": best_solution,
+        "best_solution": final_solution,
     }
+
+

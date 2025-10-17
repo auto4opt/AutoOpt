@@ -4,6 +4,7 @@ from typing import Any, List, Sequence, Tuple
 
 import numpy as np
 
+from ...components import get_component
 from ._helpers import ensure_rng, get_flex
 
 
@@ -206,3 +207,5 @@ def disturb(algs: Any, setting: Any, inner_g: int, aux: Any) -> Tuple[List[List[
         aux_list[idx] = aux_entry
 
     return new_ops, new_paras, aux_list
+
+

@@ -1,13 +1,13 @@
-"""Selection utilities mirroring MATLAB Select.m (average mode)."""
+"""Selection utilities mirroring MATLAB Select.m."""
 from __future__ import annotations
 
-from typing import Any, Iterable, List, Sequence, Tuple
+from typing import Any, Iterable, List, Sequence
 
 import numpy as np
 
 from .design import Design
 from .design._helpers import get_flex
-from .general.select_stats import friedman_statistic
+from .general.select_stats import friedman_nemenyi
 
 
 def _ensure_design_list(algs: Iterable[Design]) -> List[Design]:
@@ -39,17 +39,23 @@ def _collect_performance(algs: List[Design], setting: Any, seed_instance: Sequen
     return matrix
 
 
-def _compare_friedman(matrix: np.ndarray, alpha: float) -> np.ndarray:
-    ranks, p_values = friedman_statistic(matrix)
+def _statistic_wins(matrix: np.ndarray, alpha: float) -> np.ndarray:
+    try:
+        avg_ranks, p_matrix = friedman_nemenyi(matrix)
+    except ValueError:
+        averages = np.mean(matrix, axis=0)
+        order = np.argsort(averages)
+        wins = np.zeros(matrix.shape[1], dtype=int)
+        if len(order):
+            wins[order[0]] = matrix.shape[1] - 1
+        return wins
     wins = np.zeros(matrix.shape[1], dtype=int)
-    for (i, j), p_val in np.ndenumerate(p_values):
-        if i >= j or np.isnan(p_val):
-            continue
-        diff = ranks[i] - ranks[j]
-        if diff < 0 and p_val < alpha:
-            wins[i] += 1
-        elif diff > 0 and p_val < alpha:
-            wins[j] += 1
+    for i in range(matrix.shape[1]):
+        for j in range(matrix.shape[1]):
+            if i == j or np.isnan(p_matrix[i, j]):
+                continue
+            if p_matrix[i, j] < alpha and avg_ranks[i] < avg_ranks[j]:
+                wins[i] += 1
     return wins
 
 
@@ -79,7 +85,7 @@ def select(algs: Iterable[Design], problem: Any, data: Any, setting: Any, seed_i
         raise NotImplementedError(f"Unsupported evaluate mode: {evaluate_mode}")
 
     if compare == "statistic":
-        wins = _compare_friedman(all_perf, alpha=alpha)
+        wins = _statistic_wins(all_perf, alpha)
         order = np.argsort(-wins)
         if evaluate_mode in {"exact", "approximate", "racing"}:
             top = order[: min(alg_n, len(order))]
@@ -89,3 +95,5 @@ def select(algs: Iterable[Design], problem: Any, data: Any, setting: Any, seed_i
         raise NotImplementedError(f"Unsupported evaluate mode: {evaluate_mode}")
 
     raise NotImplementedError(f"Unsupported compare mode: {compare}")
+
+

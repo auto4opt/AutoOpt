@@ -19,9 +19,73 @@ def _to_namespace(setting: Any) -> SimpleNamespace:
     return SimpleNamespace(**data)
 
 
+def _to_behavior_matrix(behavior: Any) -> list[list[Any]] | None:
+    """Convert component behavior metadata to a list-of-lists structure."""
+    if behavior is None:
+        return None
+    if isinstance(behavior, np.ndarray):
+        behavior = behavior.tolist()
+    elif isinstance(behavior, tuple):
+        behavior = list(behavior)
+    elif not isinstance(behavior, list):
+        return None
+
+    matrix: list[list[Any]] = []
+    for row in behavior:
+        if isinstance(row, np.ndarray):
+            matrix.append(row.tolist())
+        elif isinstance(row, (list, tuple)):
+            matrix.append(list(row))
+        elif row is None:
+            matrix.append([])
+        else:
+            matrix.append([row])
+    return matrix
+
+
+def _compute_local_bounds(behavior: list[list[Any]] | None, bounds: np.ndarray | None, ls_range: float) -> np.ndarray | None:
+    """Compute the parameter subspace used for local search, mirroring MATLAB Space.m."""
+    if behavior is None or bounds is None or bounds.size == 0:
+        return None
+
+    if not behavior or not behavior[0]:
+        return None
+    first_col = behavior[0][0]
+    if first_col in (None, "", 0):
+        return None
+
+    has_global = len(behavior) > 1 and behavior[1] and behavior[1][0] not in (None, "", 0)
+    if not has_global:
+        return bounds.copy()
+
+    ls_range = float(ls_range)
+    ls_range = max(0.0, min(1.0, ls_range))
+    local_bounds = np.array(bounds, copy=True, dtype=float)
+    span = bounds[:, 1] - bounds[:, 0]
+    trends = behavior[0][1:] if len(behavior[0]) > 1 else []
+
+    for idx in range(bounds.shape[0]):
+        lower = bounds[idx, 0]
+        upper = bounds[idx, 1]
+        trend = trends[idx] if idx < len(trends) else None
+        if trend == "small":
+            local_bounds[idx, 0] = lower
+            local_bounds[idx, 1] = lower + span[idx] * ls_range
+        elif trend == "large":
+            local_bounds[idx, 0] = upper - span[idx] * ls_range
+            local_bounds[idx, 1] = upper
+        else:
+            local_bounds[idx, 0] = lower
+            local_bounds[idx, 1] = upper
+
+    return local_bounds
+
+
 def space(problem: Any, setting: Any) -> SimpleNamespace:
     """Define operator/parameter space for the design problem (continuous only)."""
     set_obj = _to_namespace(setting)
+    ls_range = float(getattr(set_obj, "LSRange", 0.25))
+    set_obj.LSRange = ls_range
     ptype = get_problem_type(problem)
 
     if ptype == "continuous":
@@ -86,6 +150,7 @@ def space(problem: Any, setting: Any) -> SimpleNamespace:
     para_local_space = []
 
     for name in all_op:
+        arr = None
         try:
             comp = get_component(name)
         except KeyError:
@@ -104,7 +169,7 @@ def space(problem: Any, setting: Any) -> SimpleNamespace:
             behavior = None
 
         if params is None:
-            para_space.append(None)
+            arr = None
         else:
             arr = np.asarray(params, dtype=float)
             if arr.ndim == 1:
@@ -116,9 +181,11 @@ def space(problem: Any, setting: Any) -> SimpleNamespace:
                 if total % 2 != 0:
                     raise ValueError(f"Parameter bounds for {name} must contain pairs")
                 arr = arr.reshape(-1, 2)
-            para_space.append(arr)
-        behav_space.append(behavior)
-        para_local_space.append(None)
+
+        behav_matrix = _to_behavior_matrix(behavior)
+        para_space.append(arr)
+        behav_space.append(behav_matrix if behav_matrix is not None else behavior)
+        para_local_space.append(_compute_local_bounds(behav_matrix, arr, ls_range))
 
     set_obj.AllOp = all_op
     set_obj.OpSpace = op_space
