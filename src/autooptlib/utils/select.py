@@ -21,11 +21,17 @@ def _require_performance(algs: List[Design], problem: Any, data: Any, setting: A
     if evaluate_mode != "racing":
         return
     for alg in algs:
-        performance = getattr(alg, "performance", None)
-        if performance is None:
-            continue
         for seed in seed_instance:
-            row = np.asarray(performance)[seed]
+            performance = getattr(alg, "performance", None)
+            if performance is None:
+                continue
+            arr = np.asarray(performance)
+            if arr.ndim == 0:
+                arr = arr.reshape(1, -1)
+            if seed >= arr.shape[0]:
+                alg.evaluate(problem, data, setting, [seed])
+                continue
+            row = arr[seed]
             if np.sum(row) == 0:
                 alg.evaluate(problem, data, setting, [seed])
 

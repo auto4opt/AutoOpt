@@ -38,7 +38,9 @@ def update_simulated_annealing(*args):
         new_fits = fitness[n : n + n]
 
         denom = np.abs(old_fits + 1e-6) * max(temperature, 1e-8)
-        acceptance_prob = np.exp((old_fits - new_fits) / denom)
+        exponent = (old_fits - new_fits) / denom
+        exponent = np.clip(exponent, -700.0, 700.0)
+        acceptance_prob = np.exp(exponent)
         acceptance = rng.random(n) < acceptance_prob
         acceptance = acceptance | (old_fits > new_fits)
 

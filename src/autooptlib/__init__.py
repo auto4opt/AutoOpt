@@ -10,4 +10,13 @@ try:  # noqa: SIM105
 except Exception:  # pylint: disable=broad-except
     get_component = None  # type: ignore
 
-__all__ = [name for name in ("Design", "get_component") if name in globals() and globals()[name] is not None]
+try:  # noqa: SIM105
+    from .problems.cec2013 import cec2013_f1  # noqa: F401
+except Exception:  # pylint: disable=broad-except
+    cec2013_f1 = None  # type: ignore
+
+__all__ = [
+    name
+    for name in ("Design", "get_component", "cec2013_f1")
+    if name in globals() and globals()[name] is not None
+]

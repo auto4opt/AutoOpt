@@ -15,19 +15,23 @@ from ..design._helpers import problem_list
 from ..general.improve_rate import improve_rate
 from ..space import space
 from ...components import get_component
-from .. import select as select_module
+from ..select import select as _select_alg
 
 
-def _progress(app: Any, message: str) -> None:
-    if app is None:
+def _progress(app: Any, message: str, *, done: bool = False) -> None:
+    if app is not None:
+        if hasattr(app, "TextArea"):
+            try:
+                app.TextArea.Value = message
+            except Exception:  # pragma: no cover
+                pass
+        elif callable(app):
+            app(message)
         return
-    if hasattr(app, "TextArea"):
-        try:
-            app.TextArea.Value = message
-        except Exception:  # pragma: no cover
-            pass
-    elif callable(app):
-        app(message)
+
+    end = "\n" if done else ""
+    prefix = "" if done else "\r"
+    print(f"{prefix}{message}", end=end, flush=True)
 
 
 def _normalize_setting(setting: Any) -> SimpleNamespace:
@@ -89,7 +93,7 @@ def _ensure_algorithm_list(obj: Iterable[Design]) -> List[Design]:
 
 
 def _select(algs: Sequence[Design], problem: Any, data: Any, setting: Any, seeds: Sequence[int]) -> List[Design]:
-    return select_module.select(algs, problem, data, setting, seeds)
+    return _select_alg(algs, problem, data, setting, seeds)
 
 
 def _mean_performance(algs: Sequence[Design]) -> np.ndarray:
@@ -236,7 +240,7 @@ def _process_design(problem_descriptor: Any, instance_train: Sequence[Any], inst
     for alg in algs:
         alg.evaluate(problems, data, setting_ns, seed_test)
     algs = _select(algs, problems, data, setting_ns, seed_test)
-    _progress(app, "Complete")
+    _progress(app, "Complete", done=True)
     return algs[:alg_n], alg_trace
 
 
@@ -261,7 +265,7 @@ def process(problem_descriptor: Any, *args, setting: Any, app: Any | None = None
         alg, setting_ns = input_algorithm(setting_ns)
         _progress(app, "Solving...")
         best_solutions, all_solutions = run_algorithm(alg, problems, data, app, setting_ns)
-        _progress(app, "Complete")
+        _progress(app, "Complete", done=True)
         return best_solutions, all_solutions
 
     raise ValueError("Mode must be 'design' or 'solve'.")

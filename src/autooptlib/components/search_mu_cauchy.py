@@ -4,6 +4,25 @@ from __future__ import annotations
 
 import numpy as np
 
+_KEY = "cauchy_eta"
+
+
+def _get_eta(aux: object):
+    if aux is None:
+        return None
+    if isinstance(aux, dict):
+        return aux.get(_KEY)
+    return getattr(aux, _KEY, None)
+
+
+def _set_eta(aux: object, value: np.ndarray) -> None:
+    if aux is None:
+        return
+    if isinstance(aux, dict):
+        aux[_KEY] = value
+    else:
+        setattr(aux, _KEY, value)
+
 
 def search_mu_cauchy(*args):
     mode = args[-1]
@@ -18,14 +37,15 @@ def search_mu_cauchy(*args):
         parent = np.asarray(parent, dtype=float)
         n, d = parent.shape
 
-        if aux is None or not hasattr(aux, "cauchy_eta") or inner_g == 1:
+        eta = None
+        if inner_g != 1:
+            eta = _get_eta(aux)
+            if eta is not None and np.shape(eta) != (n, d):
+                eta = None
+        if eta is None:
             eta = np.random.rand(n, d)
-            if aux is not None:
-                setattr(aux, "cauchy_eta", eta)
-        else:
-            eta = getattr(aux, "cauchy_eta")
-            if eta is None or np.shape(eta) != (n, d):
-                eta = np.random.rand(n, d)
+            _set_eta(aux, eta)
+
         disturb = eta * np.random.standard_cauchy(size=(n, d))
         offspring = parent + disturb
 
@@ -34,8 +54,7 @@ def search_mu_cauchy(*args):
         normal = np.random.randn(n, 1).repeat(d, axis=1)
         normal_j = np.random.randn(n, d)
         eta = eta * np.exp(tau2 * normal + tau1 * normal_j)
-        if aux is not None:
-            setattr(aux, "cauchy_eta", eta)
+        _set_eta(aux, eta)
         return offspring, aux
 
     if mode == "parameter":
