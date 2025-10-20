@@ -8,6 +8,7 @@ import numpy as np
 
 from ._utils import extract_fits
 
+
 def choose_ica(*args: Any):
     mode = args[-1]
     if mode == "execute":
@@ -28,7 +29,7 @@ def choose_ica(*args: Any):
         if n == 0:
             return np.array([], dtype=int), None
         top_k = min(top_k, n)
-        return order, None
+        return order, {"imperialist_count": top_k}
 
     if mode == "parameter":
         return np.array([5]), None

@@ -100,3 +100,4 @@ def search_ica(*args: Any):
         return ["", "GS"], None
 
     raise ValueError(f"Unsupported mode: {mode}")
+

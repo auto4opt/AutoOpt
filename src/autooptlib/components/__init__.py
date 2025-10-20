@@ -52,6 +52,7 @@ _COMPONENT_MODULES = {
     "cross_order_n": "cross_order_n",
     "para_cma": "para_cma",
     "para_pso": "para_pso",
+    "para_cmaes": "para_cmaes",
 }
 
 _cache: Dict[str, Callable] = {}
@@ -66,4 +67,5 @@ def get_component(name: str) -> Callable:
     return _cache[name]
 
 __all__ = sorted(_COMPONENT_MODULES)
+
 
