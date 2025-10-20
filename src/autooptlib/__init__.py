@@ -15,8 +15,9 @@ try:  # noqa: SIM105
 except Exception:  # pylint: disable=broad-except
     cec2013_f1 = None  # type: ignore
 
-__all__ = [
-    name
-    for name in ("Design", "get_component", "cec2013_f1")
-    if name in globals() and globals()[name] is not None
-]
+try:  # noqa: SIM105
+    from .autoopt import autoopt  # noqa: F401
+except Exception:  # pylint: disable=broad-except
+    autoopt = None  # type: ignore
+
+__all__ = [name for name in ("Design", "get_component", "cec2013_f1", "autoopt") if name in globals() and globals()[name] is not None]
