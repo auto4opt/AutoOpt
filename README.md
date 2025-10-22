@@ -172,26 +172,3 @@ Adding a problem only requires implementing the three callable modes used by MAT
 Setting up continuous integration (GitHub Actions/GitLab CI) is straightforward: install the package, run the test commands, and optionally publish the documentation. This addresses the reviewers’ concern about syntactically incorrect code snippets in PDFs.
 
 ---
-
-### 11. Documentation Guidelines
-
-- This README is the central source for the Python workflow while referencing the MATLAB/Octave directories.  
-- Sphinx/ReadTheDocs builds can reference it to avoid diverging versions.  
-- Code samples use ASCII quotes to ensure copy/paste reliability (reviewer #3’s request).  
-- Any future PDF exports must be generated directly from the same Sphinx project to maintain consistency.
-
----
-
-### 12. Usage Checklist (responding to reviewer feedback)
-
-1. **Dependencies listed** – Sections 1 and 2 address toolboxes/packages.  
-2. **Minimal example provided** – Section 4 provides ready-to-run scripts.  
-3. **ASCII-safe documentation** – All code blocks use standard ASCII quotes.  
-4. **Hyperparameter discussion** – Section 5 summarizes key parameters and their cost impact.  
-5. **Train/test clarity** – Section 6 explains expectation over random instances and how to measure overfitting.  
-6. **Complexity accounting** – Sections 5 and 8 describe how to log design-phase evaluations.  
-7. **Improved reproducibility** – Section 7 documents seed handling.  
-8. **Extensibility** – Section 9 offers guidance on adding additional CEC problems.  
-9. **Testing instructions** – Section 10 gives commands for the test suite.  
-
-With these elements, the Python documentation now directly addresses the concerns raised in the IJOC software-tool reviews.
