@@ -63,7 +63,7 @@ def test_design_initialize_and_evaluate_small_problem():
 def test_space_supports_discrete_and_permutation():
     discrete = SimpleNamespace(type=["discrete", "static"], bound=np.array([[0, 0], [3, 3]]), N=3, Gmax=5)
     permutation = SimpleNamespace(type=["permutation", "static"], bound=np.array([[1, 2, 3], [1, 2, 3]]), N=3, Gmax=5)
-    setting = SimpleNamespace(
+    base_kwargs = dict(
         Mode="design",
         archive=["archive_best"],
         AlgP=1,
@@ -77,10 +77,10 @@ def test_space_supports_discrete_and_permutation():
         Evaluate="exact",
         Compare="average",
     )
-    discrete_setting = space([discrete], setting)
-    permutation_setting = space([permutation], setting)
-    assert any("search_reset_rand" in op for op in discrete_setting.AllOp)
-    assert any("search_swap" in op for op in permutation_setting.AllOp)
+    discrete_setting = space([discrete], SimpleNamespace(**base_kwargs))
+    permutation_setting = space([permutation], SimpleNamespace(**base_kwargs))
+    assert 'reinit_discrete' in discrete_setting.AllOp
+    assert 'reinit_permutation' in permutation_setting.AllOp
 
 
 def test_design_get_new_preserves_dimensions():
@@ -104,3 +104,4 @@ def test_design_get_new_preserves_dimensions():
     new_design, aux = design.get_new([problem], setting, inner_g=1, aux=None)
     assert new_design.performance.shape == design.performance.shape
     assert aux is None or isinstance(aux, dict)
+

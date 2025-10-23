@@ -57,7 +57,7 @@ def autoopt(**kwargs: Any):
         problem_descriptor, instance_solve = data
 
     setting = input_handler(arguments, setting, "parameter")
-    setting = input_handler(setting, "check")
+    setting = input_handler(arguments, setting, "check")
 
     problem_callable = _load_problem_callable(problem_descriptor)
 
@@ -81,4 +81,3 @@ def autoopt(**kwargs: Any):
 
 
 __all__ = ["autoopt"]
-

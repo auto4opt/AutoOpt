@@ -497,6 +497,16 @@ def _build_default_algorithm(name: str, setting: Any) -> "Design":
                 [],
             ),
         ],
+        "ica": [
+            (
+                "choose_ica",
+                [
+                    ("search_ica", None, (-np.inf, 1), [0.6, 0.5], None),
+                ],
+                "update_greedy",
+                [],
+            ),
+        ],
         "discrete genetic algorithm": [
             (
                 "choose_tournament",

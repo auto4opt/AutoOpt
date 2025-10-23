@@ -50,7 +50,8 @@ def _make_problem_entry(problem: Any, shift: np.ndarray) -> None:
 def cec2013_f1(problems: Iterable[Any], instances: Sequence[int], mode: str):
     """Python translation of the CEC2013 f1 benchmark."""
     mode = str(mode).lower()
-    problems = list(problems)
+    if mode != 'evaluate':
+        problems = list(problems)
 
     if mode == "construct":
         shift_data = _load_shift_data()
@@ -69,8 +70,8 @@ def cec2013_f1(problems: Iterable[Any], instances: Sequence[int], mode: str):
         decs = np.asarray(instances, dtype=float)
         return decs, None, None
 
-    if mode == "evaluate":
-        data_obj = problems  # first argument is Data in MATLAB signature
+    if mode == 'evaluate':
+        data_obj = problems if hasattr(problems, 'o') else list(problems)[0]
         decs = np.asarray(instances, dtype=float)
         shift = np.asarray(getattr(data_obj, "o"), dtype=float)
         if decs.ndim == 1:
@@ -85,4 +86,7 @@ def cec2013_f1(problems: Iterable[Any], instances: Sequence[int], mode: str):
 
 
 __all__ = ["cec2013_f1"]
+
+
+
 
