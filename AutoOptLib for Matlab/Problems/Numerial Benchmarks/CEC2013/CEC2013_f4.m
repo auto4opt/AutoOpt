@@ -66,15 +66,15 @@ switch varargin{end}
         
         [N,D] = size(Decs);
         Decs  = Decs-repmat(o,N,1);
-        % disp(size(Decs))
-        % disp(size(M))
         Decs  = Decs*M1;
         Decs  = computeTosz(Decs);
 
         a = 1e+6;
-        fit = a.*Decs(:,1).^2;
-        for i = 1:D
-            fit = fit+Decs(:,i).^2;
+        % f4 = a*z1^2 + sum_{i=2..D} z_i^2
+        if D > 1
+            fit = a.*Decs(:,1).^2 + sum(Decs(:,2:end).^2,2);
+        else
+            fit = a.*Decs(:,1).^2;
         end
         output1= fit-1100;
 end
@@ -86,3 +86,4 @@ if ~exist('output3','var')
     output3 = [];
 end
 end
+

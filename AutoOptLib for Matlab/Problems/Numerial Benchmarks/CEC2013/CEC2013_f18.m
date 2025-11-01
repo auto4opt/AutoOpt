@@ -1,21 +1,5 @@
 function [output1,output2,output3] = CEC2013_f18(varargin)
-% The f18 Function from the benchmark for the CEC 2013 Special
-% Session on Real-Parameter Optimization.
-
-%------------------------------Reference-----------------------------------
-% Liang J J, Qu B Y, Suganthan P N, et al. Problem definitions and 
-% evaluation criteria for the CEC 2013 special session on real-parameter 
-% optimization[R]. Computational Intelligence Laboratory, Zhengzhou 
-% University, Zhengzhou, China and Nanyang Technological University, 
-% Singapore, Technical Report, 2013, 201212(34): 281-295.
-%------------------------------Copyright-----------------------------------
-% Copyright (C) <2025>  <Swarm Intelligence Lab>
-
-% AutoOptLib is a free software. You can use, redistribute, and/or modify
-% it under the terms of the GNU General Public License as published by the 
-% Free Software Foundation, either version 3 of the License, or any later 
-% version. 
-%--------------------------------------------------------------------------
+% Rotated Lunacek bi-Rastrigin Function (CEC2013)
 
 switch varargin{end}
     case 'construct'
@@ -24,90 +8,55 @@ switch varargin{end}
         instance = varargin{2};
         orgData  = load('shift_data.mat');
         o        = orgData.data(1,:);
-        Data     = struct('o',[],'M',[]);
+        Data     = struct('o',[],'M1',[],'M2',[]);
         for i = 1:length(instance)
-             Problem(i).type = type;
-
+            Problem(i).type = type;
             D = instance(i);
-            lower = zeros(1,D)-100;
-            upper = zeros(1,D)+100;
-            Problem(i).bound = [lower;upper];
-            
+            Problem(i).bound = [ones(1,D)*-100; ones(1,D)*100];
             if length(o) >= D
-                curr_o = o(1:D);
-            else 
-                curr_o = -100+200*rand(1,D);
-            end
-            Data(i).o = curr_o;
-            
-            fileMap = containers.Map([2, 5, 10, 20, 30, 40, 50, 70, 80, 90, 100], ...
-                         {'M_D2.mat', 'M_D5.mat', 'M_D10.mat', 'M_D20.mat', 'M_D30.mat', 'M_D40.mat', 'M_D50.mat', 'M_D70.mat', 'M_D80.mat', 'M_D90.mat', 'M_D100.mat'});
-            if isKey(fileMap, D)
-                M = load(fileMap(D));
-                M1 = M.data(1:D,1:D);
-                M2 = M.data(D+1:2*D,1:D);
+                Data(i).o = o(1:D);
             else
-                A = normrnd(0, 1, D, D);
-                [M1, ~] = cGram_Schmidt(A);
-                [M2, ~] = cGram_Schmidt(A);
+                Data(i).o = -100+200*rand(1,D);
             end
-            Data(i).M1 = M1;
-            Data(i).M2 = M2;
-        end      
-        output1 = Problem;
-        output2 = Data;
-        
-   case 'repair'
-        Decs = varargin{2};
-        output1 = Decs;
-    
+            fileMap = containers.Map([2,5,10,20,30,40,50,70,80,90,100], ...
+                {'M_D2.mat','M_D5.mat','M_D10.mat','M_D20.mat','M_D30.mat','M_D40.mat','M_D50.mat','M_D70.mat','M_D80.mat','M_D90.mat','M_D100.mat'});
+            if isKey(fileMap,D)
+                M = load(fileMap(D));
+                Data(i).M1 = M.data(1:D,1:D);
+                Data(i).M2 = M.data(D+1:2*D,1:D);
+            else
+                A = normrnd(0,1,D,D);
+                [Data(i).M1,~] = cGram_Schmidt(A);
+                [Data(i).M2,~] = cGram_Schmidt(A);
+            end
+        end
+        output1 = Problem; output2 = Data;
+
+    case 'repair'
+        output1 = varargin{2};
+
     case 'evaluate'
         Data = varargin{1};
-        o    = Data.o;
-        M1   = Data.M1;
-        M2   = Data.M2;
-        Decs = varargin{2};
-        
-        [N,D] = size(Decs);
-        mu0   = 2.5;
-        d     = 1;
-        x     = Decs;
-        
-        s = 1 - 1/(2*sqrt(D+20)-8.2);
+        o    = Data.o; M1 = Data.M1; M2 = Data.M2;
+        X    = varargin{2};
+        [N,D] = size(X);
+
+        mu0 = 2.5; d = 1; s = 1 - 1/(2*sqrt(D+20)-8.2);
         mu1 = -sqrt((mu0^2 - d)/s);
 
-        Decs = Decs - repmat(o, N, 1);
-        y = 0.1 * Decs;
-        y = 2 * y;
-        
-        x_prime = zeros(D);
-        z = (x_prime - mu0) * M1 * constructLambda(100, D) * M2;
-        z_prime = zeros(D);
+        Y = 10*(X - repmat(o,N,1))/100;
+        sgn = ones(1,D); sgn(o<=0) = -1;
+        Xhat = 2*repmat(sgn,N,1).*Y + mu0;
+        Z = (Xhat - mu0)*M1; Z = Z*constructLambda(100,D); Z = Z*M2;
 
-
-        for i=1:D
-            x_prime(i) = sign(x(i)) * y(i) + mu0;
-            z_prime(i) = sign(z(i)) * y(i) + mu0;
-        end
-        
-        
-        term1 = 0;
-        term2 = 0;
-        term3 = 0;
-        for i=1:D
-            term1 = term1 + (x_prime(i) - mu0).^2;
-            term2 = term2 + (x_prime(i) - mu1).^2;
-            term3 = term3 + cos(2*pi*z_prime(i));
-        end
-
-        fit = min(term1, D + s*term2) + 10*(D-term3);
-        output1 = fit + 400;
+        term1 = sum((Xhat-mu0).^2,2);
+        term2 = d*D + s*sum((Xhat-mu1).^2,2);
+        base  = min(term1, term2);
+        ras   = 10*(D - sum(cos(2*pi*Z),2));
+        output1 = base + ras + 400;
 end
 
-if ~exist('output2','var')
-    output2 = [];
+if ~exist('output2','var'), output2 = []; end
+if ~exist('output3','var'), output3 = []; end
 end
-if ~exist('output3','var')
-    output3 = [];
-end
-end
+

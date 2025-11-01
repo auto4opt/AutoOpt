@@ -1,21 +1,5 @@
 function [output1,output2,output3] = CEC2013_f19(varargin)
-% The f19 Function from the benchmark for the CEC 2013 Special
-% Session on Real-Parameter Optimization.
-
-%------------------------------Reference-----------------------------------
-% Liang J J, Qu B Y, Suganthan P N, et al. Problem definitions and 
-% evaluation criteria for the CEC 2013 special session on real-parameter 
-% optimization[R]. Computational Intelligence Laboratory, Zhengzhou 
-% University, Zhengzhou, China and Nanyang Technological University, 
-% Singapore, Technical Report, 2013, 201212(34): 281-295.
-%------------------------------Copyright-----------------------------------
-% Copyright (C) <2025>  <Swarm Intelligence Lab>
-
-% AutoOptLib is a free software. You can use, redistribute, and/or modify
-% it under the terms of the GNU General Public License as published by the 
-% Free Software Foundation, either version 3 of the License, or any later 
-% version. 
-%--------------------------------------------------------------------------
+% Rotated Expanded Griewank's plus Rosenbrock's Function (CEC2013)
 
 switch varargin{end}
     case 'construct'
@@ -26,69 +10,49 @@ switch varargin{end}
         o        = orgData.data(1,:);
         Data     = struct('o',[],'M',[]);
         for i = 1:length(instance)
-             Problem(i).type = type;
-
+            Problem(i).type = type;
             D = instance(i);
-            lower = zeros(1,D)-100;
-            upper = zeros(1,D)+100;
-            Problem(i).bound = [lower;upper];
-            
+            Problem(i).bound = [ones(1,D)*-100; ones(1,D)*100];
             if length(o) >= D
-                curr_o = o(1:D);
-            else 
-                curr_o = -100+200*rand(1,D);
-            end
-            Data(i).o = curr_o;
-            
-            fileMap = containers.Map([2, 5, 10, 20, 30, 40, 50, 70, 80, 90, 100], ...
-                         {'M_D2.mat', 'M_D5.mat', 'M_D10.mat', 'M_D20.mat', 'M_D30.mat', 'M_D40.mat', 'M_D50.mat', 'M_D70.mat', 'M_D80.mat', 'M_D90.mat', 'M_D100.mat'});
-            if isKey(fileMap, D)
-                M = load(fileMap(D));
-                M1 = M.data(1:D,1:D);
-                M2 = M.data(D+1:2*D,1:D);
+                Data(i).o = o(1:D);
             else
-                A = normrnd(0, 1, D, D);
-                [M1, ~] = cGram_Schmidt(A);
-                [M2, ~] = cGram_Schmidt(A);
+                Data(i).o = -100+200*rand(1,D);
             end
-            Data(i).M1 = M1;
-            Data(i).M2 = M2;
-        end      
-        output1 = Problem;
-        output2 = Data;
-        
-   case 'repair'
-        Decs = varargin{2};
-        output1 = Decs;
-    
+            fileMap = containers.Map([2,5,10,20,30,40,50,70,80,90,100], ...
+                {'M_D2.mat','M_D5.mat','M_D10.mat','M_D20.mat','M_D30.mat','M_D40.mat','M_D50.mat','M_D70.mat','M_D80.mat','M_D90.mat','M_D100.mat'});
+            if isKey(fileMap,D)
+                M = load(fileMap(D));
+                Data(i).M = M.data(1:D,1:D);
+            else
+                A = normrnd(0,1,D,D);
+                [Data(i).M,~] = cGram_Schmidt(A);
+            end
+        end
+        output1 = Problem; output2 = Data;
+
+    case 'repair'
+        output1 = varargin{2};
+
     case 'evaluate'
         Data = varargin{1};
-        o    = Data.o;
-        M1   = Data.M1;
-        M2   = Data.M2;
-        Decs = varargin{2};
-        
-        [N,D] = size(Decs);
-        Decs = Decs - repmat(o, N, 1);
-        z = (Decs*5/100)*M1 + 1;
+        o    = Data.o; M = Data.M;
+        X    = varargin{2};
+        [N,D] = size(X);
 
-        fit = 0;
-        for i=1:D
-            zi = z(:,i);
-            j = i + 1;
-            if j>D
-                j=1;
-            end
-            s = 100*(zi^2 - z(j))^2 + (zi-1)^2;
-            fit = fit + (s^2/4000 - cos(s)/sqrt(i) + 1);
+        Z = 5*(X - repmat(o,N,1))/100; Z = Z*M; Z = Z + 1;
+
+        % pairwise Rosenbrock, then Griewank per scalar, ring connection
+        fit = zeros(N,1);
+        for i = 1:D
+            j = i+1; if j>D, j=1; end
+            u = 100*(Z(:,i).^2 - Z(:,j)).^2 + (Z(:,i)-1).^2; % Rosenbrock
+            g = u/4000 - cos(u) + 1;                          % Griewank
+            fit = fit + g;
         end
         output1 = fit + 500;
 end
 
-if ~exist('output2','var')
-    output2 = [];
+if ~exist('output2','var'), output2 = []; end
+if ~exist('output3','var'), output3 = []; end
 end
-if ~exist('output3','var')
-    output3 = [];
-end
-end
+

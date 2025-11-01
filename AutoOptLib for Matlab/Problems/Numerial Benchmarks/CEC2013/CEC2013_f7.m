@@ -70,21 +70,21 @@ switch varargin{end}
         
         [N,D] = size(Decs);
         Decs  = Decs-repmat(o,N,1);
-        % disp(size(Decs))
-        % disp(size(M))
         Decs  = Decs*M1;
         Decs  = computeTAsym(Decs,0.5);
         Decs  = Decs*M2;
         Decs  = Decs*constructLambda(10,D);
 
-        fit = 0;
+        % f7 = ( 1/(D-1) * sum_i ( sqrt(z_i) + sqrt(z_i) * sin^2(50*z_i^0.2) ) )^2
+        acc = zeros(N,1);
         for i = 1:D-1
             y_i = Decs(:,i);
             y_j = Decs(:, i+1);
-            z = sqrt(y_i.^2 + y_j.^2);
-            fit = fit+(sqrt(z)+sqrt(z)*sin(50*(z.^0.2)).^2).^2;
+            r = sqrt(y_i.^2 + y_j.^2);
+            t = sqrt(r) + sqrt(r).* (sin(50*(r.^0.2)).^2);
+            acc = acc + t;
         end
-        fit = fit/(D-1);
+        fit = (acc/(D-1)).^2;
         output1= fit-800;
 end
 
@@ -95,3 +95,4 @@ if ~exist('output3','var')
     output3 = [];
 end
 end
+

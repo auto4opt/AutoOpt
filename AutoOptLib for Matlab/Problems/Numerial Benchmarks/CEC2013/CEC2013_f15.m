@@ -24,7 +24,7 @@ switch varargin{end}
         instance = varargin{2};
         orgData  = load('shift_data.mat');
         o        = orgData.data(1,:);
-        Data     = struct('o',[],'M',[]);
+        Data     = struct('o',[],'M1',[]);
         for i = 1:length(instance)
              Problem(i).type = type;
 
@@ -45,14 +45,11 @@ switch varargin{end}
             if isKey(fileMap, D)
                 M = load(fileMap(D));
                 M1 = M.data(1:D,1:D);
-                M2 = M.data(D+1:2*D,1:D);
             else
                 A = normrnd(0, 1, D, D);
                 [M1, ~] = cGram_Schmidt(A);
-                [M2, ~] = cGram_Schmidt(A);
             end
             Data(i).M1 = M1;
-            Data(i).M2 = M2;
         end
         output1 = Problem;
         output2 = Data;
@@ -65,7 +62,6 @@ switch varargin{end}
         Data = varargin{1};
         o    = Data.o;
         M1   = Data.M1;
-        M2   = Data.M2;
         Decs = varargin{2};
         
         [N,D] = size(Decs);
