@@ -660,8 +660,11 @@ def _schwefel_core(z: np.ndarray, dim: int, penalty_sign: float) -> np.ndarray:
     for i in range(dim):
         zi = z[:, i]
         term = np.zeros_like(result)
-        cond1 = abs_z[:, i] <= 500.0
-        term[cond1] = zi[cond1] * np.sin(np.sqrt(abs_z[cond1]))
+        abs_col = abs_z[:, i]
+
+        cond1 = abs_col <= 500.0
+        if np.any(cond1):
+            term[cond1] = zi[cond1] * np.sin(np.sqrt(abs_col[cond1]))
 
         cond2 = zi > 500.0
         if np.any(cond2):
@@ -671,7 +674,7 @@ def _schwefel_core(z: np.ndarray, dim: int, penalty_sign: float) -> np.ndarray:
 
         cond3 = zi < -500.0
         if np.any(cond3):
-            temp = np.mod(abs_z[cond3], 500.0) - 500.0
+            temp = np.mod(abs_col[cond3], 500.0) - 500.0
             penalty = penalty_sign * ((zi[cond3] + 500.0) ** 2) / (10000.0 * dim)
             term[cond3] = temp * np.sin(np.sqrt(np.abs(temp))) + penalty
 

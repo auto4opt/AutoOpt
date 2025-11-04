@@ -1,0 +1,32 @@
+# Byte-compiled / interpreter cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Python packaging / build artifacts
+*.egg-info/
+build/
+dist/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Testing / coverage outputs
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE and editor settings
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Generated experiment artifacts
+smoke_outputs/
+
+# Miscellaneous OS files
+Thumbs.db
+.DS_Store
