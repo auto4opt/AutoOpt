@@ -77,7 +77,12 @@ def extract_fits(solution: Any) -> np.ndarray:
                 val = flex_get(item, "fits")
             if val is None:
                 raise ValueError("Each solution must expose fit/fitness value")
-            values.append(float(np.asarray(val).reshape(1)))
+            # values.append(float(np.asarray(val).reshape(1)))
+
+            arr = np.asarray(val)
+            if arr.size != 1:
+                raise ValueError(f"Expected a scalar-like value, got shape={arr.shape}")
+            values.append(float(arr.item()))
         return np.asarray(values, dtype=float)
     raise ValueError("Solution must provide fitness information")
 
